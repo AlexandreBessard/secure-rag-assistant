@@ -1,0 +1,72 @@
+package com.lexoft.rag.ingestion.listener;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lexoft.rag.ingestion.model.S3EventNotification;
+import com.lexoft.rag.ingestion.service.IngestionService;
+import io.awspring.cloud.sqs.annotation.SqsListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+
+import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
+@Profile("aws")
+@Component
+public class DocumentIngestionListener {
+
+    private static final Logger log = LoggerFactory.getLogger(DocumentIngestionListener.class);
+
+    private final S3Client s3Client;
+    private final IngestionService ingestionService;
+    private final ObjectMapper objectMapper;
+
+    public DocumentIngestionListener(S3Client s3Client,
+                                     IngestionService ingestionService,
+                                     ObjectMapper objectMapper) {
+        this.s3Client = s3Client;
+        this.ingestionService = ingestionService;
+        this.objectMapper = objectMapper;
+    }
+
+    @SqsListener("${app.sqs.queue-name}")
+    public void onS3Event(String messageBody) throws IOException {
+        S3EventNotification event = objectMapper.readValue(messageBody, S3EventNotification.class);
+
+        for (S3EventNotification.Record record : event.records()) {
+            String bucket = record.s3().bucket().name();
+            // S3 URL-encodes the key in the notification (spaces → '+' or '%20')
+            String key = URLDecoder.decode(record.s3().object().key(), StandardCharsets.UTF_8);
+            log.info("Received S3 event: s3://{}/{}", bucket, key);
+
+            try {
+                process(bucket, key);
+            } catch (Exception e) {
+                log.error("Failed to process s3://{}/{}", bucket, key, e);
+                throw e;
+            }
+        }
+    }
+
+    private void process(String bucket, String key) {
+        HeadObjectResponse head = s3Client.headObject(r -> r.bucket(bucket).key(key));
+        Map<String, String> metadata = head.metadata();
+
+        String filename = key.substring(key.lastIndexOf('/') + 1);
+        String documentId = metadata.getOrDefault("document-id",
+                filename.contains(".") ? filename.substring(0, filename.lastIndexOf('.')) : filename);
+        String requiredRole = metadata.getOrDefault("required-role", "employee");
+
+        ResponseBytes<GetObjectResponse> objectBytes = s3Client.getObjectAsBytes(
+                r -> r.bucket(bucket).key(key));
+
+        ingestionService.ingest(documentId, requiredRole, filename, objectBytes.asByteArray());
+    }
+}

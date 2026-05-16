@@ -11,5 +11,22 @@ services:
       - keycloak_data:/opt/keycloak/data
       - ./keycloak/rag-realm.json:/opt/keycloak/data/import/rag-realm.json
 
+  pgvector:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: ragdb
+      POSTGRES_USER: raguser
+      POSTGRES_PASSWORD: ragpass
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgvector_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raguser -d ragdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   keycloak_data:
+  pgvector_data:

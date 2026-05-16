@@ -5,6 +5,7 @@
   "sslRequired": "none",
   "registrationAllowed": false,
   "loginWithEmailAllowed": false,
+  "accessTokenLifespan": 1800,
   "roles": {
     "realm": [
       { "name": "executive", "description": "Full access — all documents including confidential financials and board materials" },
