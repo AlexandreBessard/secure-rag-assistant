@@ -1,0 +1,75 @@
+{
+  "realm": "rag-assistant",
+  "displayName": "RAG Assistant",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": false,
+  "roles": {
+    "realm": [
+      { "name": "executive", "description": "Full access — all documents including confidential financials and board materials" },
+      { "name": "hr",        "description": "HR access — salary bands, performance reviews, hiring pipeline" },
+      { "name": "manager",   "description": "Manager access — team reports, project budgets, headcount plans" },
+      { "name": "employee",  "description": "Employee access — company handbook, general policies, public FAQs" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "rag-frontend",
+      "name": "RAG Frontend",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "http://localhost:4200/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "alice",
+      "email": "alice@example.com",
+      "firstName": "Alice",
+      "lastName": "Executive",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "alice123", "temporary": false }],
+      "realmRoles": ["executive"]
+    },
+    {
+      "username": "bob",
+      "email": "bob@example.com",
+      "firstName": "Bob",
+      "lastName": "HR",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "bob123", "temporary": false }],
+      "realmRoles": ["hr"]
+    },
+    {
+      "username": "carol",
+      "email": "carol@example.com",
+      "firstName": "Carol",
+      "lastName": "Manager",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "carol123", "temporary": false }],
+      "realmRoles": ["manager"]
+    },
+    {
+      "username": "dave",
+      "email": "dave@example.com",
+      "firstName": "Dave",
+      "lastName": "Employee",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "dave123", "temporary": false }],
+      "realmRoles": ["employee"]
+    }
+  ]
+}
