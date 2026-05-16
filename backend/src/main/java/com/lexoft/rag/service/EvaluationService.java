@@ -1,6 +1,5 @@
 package com.lexoft.rag.service;
 
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.evaluation.RelevancyEvaluator;
 import org.springframework.ai.evaluation.EvaluationRequest;
 import org.springframework.ai.evaluation.EvaluationResponse;
@@ -11,8 +10,8 @@ public class EvaluationService {
 
     private final RelevancyEvaluator evaluator;
 
-    public EvaluationService(ChatClient.Builder chatClientBuilder) {
-        this.evaluator = new RelevancyEvaluator(chatClientBuilder);
+    public EvaluationService(RelevancyEvaluator evaluator) {
+        this.evaluator = evaluator;
     }
 
     public EvaluationResponse evaluate(String question, String answer) {

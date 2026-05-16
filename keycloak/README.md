@@ -10,22 +10,65 @@ docker compose up -d
 
 Admin console: `http://localhost:8180` — credentials: `admin` / `admin`
 
-## First-time setup
+Keycloak automatically imports `rag-realm.json` on first start (via `--import-realm`). The realm,
+roles, client, and users are all created with no manual steps.
 
-After the very first start (or after running `docker compose down -v`), wait for Keycloak to fully start, then run:
+## Realm: `rag-assistant`
 
-```bash
-docker compose exec keycloak /opt/keycloak/bin/kcadm.sh config credentials \
-  --server http://localhost:8080 --realm master --user admin --password admin
+### Roles & document access
 
-docker compose exec keycloak /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE
+```
+┌───────────────────────────────────┬───────────┬─────┬─────────┬──────────┐
+│             Document              │ executive │ hr  │ manager │ employee │
+├───────────────────────────────────┼───────────┼─────┼─────────┼──────────┤
+│ Company handbook / general FAQ    │    ✅     │ ✅  │   ✅    │    ✅    │
+├───────────────────────────────────┼───────────┼─────┼─────────┼──────────┤
+│ IT & office policies              │    ✅     │ ✅  │   ✅    │    ✅    │
+├───────────────────────────────────┼───────────┼─────┼─────────┼──────────┤
+│ Team performance reports          │    ✅     │ ✅  │   ✅    │    ❌    │
+├───────────────────────────────────┼───────────┼─────┼─────────┼──────────┤
+│ Project budgets / headcount plans │    ✅     │ ✅  │   ✅    │    ❌    │
+├───────────────────────────────────┼───────────┼─────┼─────────┼──────────┤
+│ Salary bands / compensation grids │    ✅     │ ✅  │   ❌    │    ❌    │
+├───────────────────────────────────┼───────────┼─────┼─────────┼──────────┤
+│ Individual performance reviews    │    ✅     │ ✅  │   ❌    │    ❌    │
+├───────────────────────────────────┼───────────┼─────┼─────────┼──────────┤
+│ Strategic roadmap / board deck    │    ✅     │ ❌  │   ❌    │    ❌    │
+├───────────────────────────────────┼───────────┼─────┼─────────┼──────────┤
+│ M&A / financial forecasts         │    ✅     │ ❌  │   ❌    │    ❌    │
+└───────────────────────────────────┴───────────┴─────┴─────────┴──────────┘
 ```
 
-This disables the HTTPS requirement on the master realm. The setting is persisted in the named volume (`keycloak_data`) and survives restarts — you only need to do this once.
+### Users
+
+| Username | Password | Role |
+|---|---|---|
+| `alice` | `alice123` | `executive` |
+| `bob` | `bob123` | `hr` |
+| `carol` | `carol123` | `manager` |
+| `dave` | `dave123` | `employee` |
+
+### Client
+
+| Field | Value |
+|---|---|
+| Client ID | `rag-frontend` |
+| Type | Public (no secret) |
+| Redirect URI | `http://localhost:4200/*` |
+| Web Origins | `http://localhost:4200` |
+
+## Re-importing after changes to `rag-realm.json`
+
+The realm is only imported once (on a fresh volume). To re-import after editing the JSON:
+
+```bash
+docker compose down -v   # wipes the volume
+docker compose up -d     # fresh start — realm is re-imported automatically
+```
 
 ## Stop
 
 ```bash
-docker compose down        # stops containers, keeps volume (no setup needed on next start)
-docker compose down -v     # stops containers AND deletes volume (first-time setup required again)
+docker compose down        # stops containers, keeps volume
+docker compose down -v     # stops containers AND deletes volume (re-import on next start)
 ```
