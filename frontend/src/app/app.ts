@@ -1,8 +1,11 @@
-import { Component, signal, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
+import { Component, inject, signal, ElementRef, ViewChild, AfterViewChecked, OnInit } from '@angular/core';
+import { KeycloakService } from './keycloak.service';
+import { ChatService } from './chat.service';
 
 interface Message {
   text: string;
   sender: 'user' | 'bot';
+  loading?: boolean;
 }
 
 @Component({
@@ -11,14 +14,25 @@ interface Message {
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App implements AfterViewChecked {
+export class App implements OnInit, AfterViewChecked {
+  protected keycloak = inject(KeycloakService);
+  private chat = inject(ChatService);
+
   messages = signal<Message[]>([]);
   inputText = signal('');
+  ready = signal(false);
 
   @ViewChild('messagesEnd') private messagesEnd!: ElementRef;
 
   ngAfterViewChecked() {
     this.messagesEnd?.nativeElement.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async ngOnInit() {
+    this.messages.set([{ text: '', sender: 'bot', loading: true }]);
+    const message = await this.chat.getWelcome(this.keycloak.username, this.keycloak.role);
+    this.messages.set([{ text: message, sender: 'bot' }]);
+    this.ready.set(true);
   }
 
   sendMessage() {

@@ -5,12 +5,23 @@
       <span class="chat-name">RAG Assistant</span>
       <span class="chat-status">Online</span>
     </div>
+    <div class="user-info">
+      <span class="username">{{ keycloak.username }}</span>
+      <span class="role-badge role-{{ keycloak.role }}">{{ keycloak.role }}</span>
+      <button class="logout-btn" (click)="keycloak.logout()">Logout</button>
+    </div>
   </header>
 
   <div class="messages-area">
     @for (msg of messages(); track $index) {
       <div class="message-wrapper" [class.user]="msg.sender === 'user'" [class.bot]="msg.sender === 'bot'">
-        <div class="message-bubble">{{ msg.text }}</div>
+        <div class="message-bubble">
+          @if (msg.loading) {
+            <span class="typing-dots"><span></span><span></span><span></span></span>
+          } @else {
+            {{ msg.text }}
+          }
+        </div>
       </div>
     }
     <div #messagesEnd></div>
@@ -24,8 +35,9 @@
       (keydown)="onKeyDown($event)"
       placeholder="Type a message"
       type="text"
+      [disabled]="!ready()"
     />
-    <button class="send-btn" (click)="sendMessage()" aria-label="Send">
+    <button class="send-btn" (click)="sendMessage()" [disabled]="!ready()" aria-label="Send">
       <svg viewBox="0 0 24 24" width="22" height="22">
         <path fill="currentColor" d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z" />
       </svg>

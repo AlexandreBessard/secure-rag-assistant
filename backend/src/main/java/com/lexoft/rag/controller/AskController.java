@@ -23,7 +23,6 @@ public class AskController {
     @PostMapping(path = "/ask", produces = "application/json")
     public AskResponse ask(@RequestBody AskRequest request) {
         String answer = chatService.ask(request.question());
-        // Evaluation response is used for RAG, it judges whether the answer is grounded in retrieved context documents. Without doc, nothing to compare
         EvaluationResponse evaluation = evaluationService.evaluate(request.question(), answer);
         return new AskResponse(answer, evaluation.isPass(), evaluation.getScore(), evaluation.getFeedback());
     }
