@@ -8,6 +8,7 @@
   "accessTokenLifespan": 1800,
   "roles": {
     "realm": [
+      { "name": "admin",     "description": "Upload access — can ingest documents into the RAG system" },
       { "name": "executive", "description": "Full access — all documents including confidential financials and board materials" },
       { "name": "hr",        "description": "HR access — salary bands, performance reviews, hiring pipeline" },
       { "name": "manager",   "description": "Manager access — team reports, project budgets, headcount plans" },
@@ -40,7 +41,7 @@
       "enabled": true,
       "emailVerified": true,
       "credentials": [{ "type": "password", "value": "alice123", "temporary": false }],
-      "realmRoles": ["executive"]
+      "realmRoles": ["executive", "admin"]
     },
     {
       "username": "bob",
@@ -50,7 +51,7 @@
       "enabled": true,
       "emailVerified": true,
       "credentials": [{ "type": "password", "value": "bob123", "temporary": false }],
-      "realmRoles": ["hr"]
+      "realmRoles": ["hr", "admin"]
     },
     {
       "username": "carol",
@@ -60,7 +61,7 @@
       "enabled": true,
       "emailVerified": true,
       "credentials": [{ "type": "password", "value": "carol123", "temporary": false }],
-      "realmRoles": ["manager"]
+      "realmRoles": ["manager", "admin"]
     },
     {
       "username": "dave",

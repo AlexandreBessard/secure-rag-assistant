@@ -6,6 +6,10 @@ interface WelcomeResponse {
   message: string;
 }
 
+interface AskResponse {
+  answer: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ChatService {
   private http = inject(HttpClient);
@@ -17,5 +21,11 @@ export class ChatService {
         params: { username, role },
       }),
     ).then((r) => r.message);
+  }
+
+  ask(question: string): Promise<string> {
+    return firstValueFrom(
+      this.http.post<AskResponse>(`${this.base}/ask`, { question }),
+    ).then((r) => r.answer);
   }
 }

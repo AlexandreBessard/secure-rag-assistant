@@ -26,6 +26,11 @@ export class KeycloakService {
     return roles.find((r) => appRoles.includes(r)) ?? '';
   }
 
+  get isAdmin(): boolean {
+    const roles: string[] = this.kc.tokenParsed?.['realm_access']?.['roles'] ?? [];
+    return roles.includes('admin');
+  }
+
   get token(): string {
     return this.kc.token ?? '';
   }

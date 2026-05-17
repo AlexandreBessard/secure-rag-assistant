@@ -1,0 +1,10 @@
+output "vpc_id"              { value = aws_vpc.main.id }
+output "public_subnet_ids"  { value = aws_subnet.public[*].id }
+output "private_subnet_ids" { value = aws_subnet.private[*].id }
+output "alb_dns_name"       { value = aws_lb.main.dns_name }
+output "backend_tg_arn"     { value = aws_lb_target_group.backend.arn }
+output "keycloak_tg_arn"    { value = aws_lb_target_group.keycloak.arn }
+output "backend_sg_id"      { value = aws_security_group.backend.id }
+output "keycloak_sg_id"     { value = aws_security_group.keycloak.id }
+output "rds_sg_id"          { value = aws_security_group.rds.id }
+output "ingestion_sg_id"    { value = aws_security_group.ingestion.id }
