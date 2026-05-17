@@ -1,6 +1,7 @@
 import { ApplicationConfig, APP_INITIALIZER, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideMarkdown } from 'ngx-markdown';
 import { authInterceptor } from './auth.interceptor';
 
 import { routes } from './app.routes';
@@ -11,6 +12,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
+    provideMarkdown(),
     {
       provide: APP_INITIALIZER,
       useFactory: (keycloak: KeycloakService) => () => keycloak.init(),

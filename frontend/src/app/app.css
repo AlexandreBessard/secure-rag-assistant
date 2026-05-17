@@ -187,6 +187,105 @@
   cursor: not-allowed;
 }
 
+/* Markdown inside bot bubbles */
+.bot .message-bubble markdown p       { margin: 0 0 6px; }
+.bot .message-bubble markdown p:last-child { margin-bottom: 0; }
+.bot .message-bubble markdown strong  { font-weight: 600; }
+.bot .message-bubble markdown ul,
+.bot .message-bubble markdown ol      { margin: 4px 0 6px 16px; padding: 0; }
+.bot .message-bubble markdown li      { margin-bottom: 2px; }
+.bot .message-bubble markdown h1,
+.bot .message-bubble markdown h2,
+.bot .message-bubble markdown h3      { font-size: 13px; font-weight: 600; margin: 6px 0 4px; }
+
+/* Upload panel */
+.upload-toggle-btn {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.upload-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.upload-panel {
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  padding: 16px 20px;
+  flex-shrink: 0;
+}
+
+.upload-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+}
+
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #555;
+  font-weight: 500;
+}
+
+.upload-select,
+.upload-file-input {
+  font-size: 13px;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fafafa;
+  color: #303030;
+}
+
+.upload-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.upload-btn {
+  font-size: 13px;
+  padding: 6px 18px;
+  border-radius: 12px;
+  border: none;
+  background: #075e54;
+  color: white;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.upload-btn:hover:not(:disabled) {
+  background: #128c7e;
+}
+
+.upload-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.upload-feedback {
+  font-size: 12px;
+}
+
+.upload-ok  { color: #1e8449; }
+.upload-err { color: #c0392b; }
+
 /* Typing indicator */
 .typing-dots {
   display: inline-flex;

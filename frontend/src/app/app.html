@@ -8,9 +8,53 @@
     <div class="user-info">
       <span class="username">{{ keycloak.username }}</span>
       <span class="role-badge role-{{ keycloak.role }}">{{ keycloak.role }}</span>
+      @if (keycloak.isAdmin) {
+        <button class="upload-toggle-btn" (click)="showUpload.set(!showUpload())">
+          {{ showUpload() ? 'Close' : 'Upload' }}
+        </button>
+      }
       <button class="logout-btn" (click)="keycloak.logout()">Logout</button>
     </div>
   </header>
+
+  @if (showUpload()) {
+    <div class="upload-panel">
+      <h3 class="upload-title">Upload Document</h3>
+      <div class="upload-form">
+        <label class="upload-label">
+          Target role
+          <select
+            class="upload-select"
+            [value]="uploadRole()"
+            (change)="uploadRole.set($any($event.target).value)"
+          >
+            @for (r of appRoles; track r) {
+              <option [value]="r">{{ r }}</option>
+            }
+          </select>
+        </label>
+        <label class="upload-label">
+          File
+          <input class="upload-file-input" type="file" (change)="onFileChange($event)" />
+        </label>
+        <div class="upload-actions">
+          <button
+            class="upload-btn"
+            (click)="submitUpload()"
+            [disabled]="!uploadFile() || uploadStatus() === 'uploading'"
+          >
+            {{ uploadStatus() === 'uploading' ? 'Uploading…' : 'Upload' }}
+          </button>
+          @if (uploadStatus() === 'done') {
+            <span class="upload-feedback upload-ok">Uploaded successfully.</span>
+          }
+          @if (uploadStatus() === 'error') {
+            <span class="upload-feedback upload-err">Upload failed. Check console.</span>
+          }
+        </div>
+      </div>
+    </div>
+  }
 
   <div class="messages-area">
     @for (msg of messages(); track $index) {
@@ -18,6 +62,8 @@
         <div class="message-bubble">
           @if (msg.loading) {
             <span class="typing-dots"><span></span><span></span><span></span></span>
+          } @else if (msg.sender === 'bot') {
+            <markdown [data]="msg.text" />
           } @else {
             {{ msg.text }}
           }
