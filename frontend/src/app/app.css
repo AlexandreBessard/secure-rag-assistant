@@ -53,6 +53,26 @@
 .role-badge.role-manager   { background: #2471a3; }
 .role-badge.role-employee  { background: #1e8449; }
 
+.clear-btn {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 100, 100, 0.6);
+  background: transparent;
+  color: rgba(255, 180, 180, 1);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.clear-btn:hover:not(:disabled) {
+  background: rgba(255, 80, 80, 0.2);
+}
+
+.clear-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .logout-btn {
   font-size: 12px;
   padding: 4px 12px;
@@ -285,6 +305,40 @@
 
 .upload-ok  { color: #1e8449; }
 .upload-err { color: #c0392b; }
+
+/* Source citations */
+.message-sources {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.sources-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #999;
+  margin-right: 2px;
+  flex-shrink: 0;
+}
+
+.source-chip {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: #f0f2f5;
+  border: 1px solid #d5d8dc;
+  border-radius: 10px;
+  color: #505050;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* Typing indicator */
 .typing-dots {

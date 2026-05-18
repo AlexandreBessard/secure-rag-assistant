@@ -1,13 +1,14 @@
-import { Component, inject, signal, ElementRef, ViewChild, AfterViewChecked, OnInit } from '@angular/core';
+import { Component, inject, signal, ElementRef, ViewChild, OnInit, effect } from '@angular/core';
 import { MarkdownComponent } from 'ngx-markdown';
 import { KeycloakService } from './keycloak.service';
-import { ChatService } from './chat.service';
+import { ChatService, HistoryMessage, Source } from './chat.service';
 import { UploadService } from './upload.service';
 
 interface Message {
   text: string;
   sender: 'user' | 'bot';
   loading?: boolean;
+  sources?: Source[];
 }
 
 @Component({
@@ -16,7 +17,7 @@ interface Message {
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App implements OnInit, AfterViewChecked {
+export class App implements OnInit {
   protected keycloak = inject(KeycloakService);
   private chat = inject(ChatService);
   private uploadService = inject(UploadService);
@@ -34,15 +35,34 @@ export class App implements OnInit, AfterViewChecked {
 
   @ViewChild('messagesEnd') private messagesEnd!: ElementRef;
 
-  ngAfterViewChecked() {
-    this.messagesEnd?.nativeElement.scrollIntoView({ behavior: 'smooth' });
+  constructor() {
+    effect(() => {
+      this.messages();
+      setTimeout(() => this.messagesEnd?.nativeElement?.scrollIntoView({ behavior: 'smooth' }), 0);
+    });
   }
 
   async ngOnInit() {
     this.messages.set([{ text: '', sender: 'bot', loading: true }]);
-    const message = await this.chat.getWelcome(this.keycloak.username, this.keycloak.role);
-    this.messages.set([{ text: message, sender: 'bot' }]);
+    const history = await this.chat.getHistory();
+    if (history.length > 0) {
+      this.messages.set(history.map((h: HistoryMessage) => ({ text: h.text, sender: h.role, sources: h.sources ?? [] })));
+    } else {
+      const welcome = await this.chat.getWelcome(this.keycloak.username, this.keycloak.role);
+      this.messages.set([{ text: welcome, sender: 'bot' }]);
+    }
     this.ready.set(true);
+  }
+
+  async clearHistory() {
+    this.ready.set(false);
+    try {
+      await this.chat.clearHistory();
+      const welcome = await this.chat.getWelcome(this.keycloak.username, this.keycloak.role);
+      this.messages.set([{ text: welcome, sender: 'bot' }]);
+    } finally {
+      this.ready.set(true);
+    }
   }
 
   async sendMessage() {
@@ -56,8 +76,11 @@ export class App implements OnInit, AfterViewChecked {
     this.messages.update((msgs) => [...msgs, { text: '', sender: 'bot', loading: true }]);
 
     try {
-      const answer = await this.chat.ask(text);
-      this.messages.update((msgs) => [...msgs.slice(0, -1), { text: answer, sender: 'bot' }]);
+      const result = await this.chat.ask(text);
+      this.messages.update((msgs) => [
+        ...msgs.slice(0, -1),
+        { text: result.answer, sender: 'bot', sources: result.sources },
+      ]);
     } catch {
       this.messages.update((msgs) => [
         ...msgs.slice(0, -1),

@@ -13,6 +13,7 @@
           {{ showUpload() ? 'Close' : 'Upload' }}
         </button>
       }
+      <button class="clear-btn" (click)="clearHistory()" [disabled]="!ready()">Clear</button>
       <button class="logout-btn" (click)="keycloak.logout()">Logout</button>
     </div>
   </header>
@@ -64,6 +65,14 @@
             <span class="typing-dots"><span></span><span></span><span></span></span>
           } @else if (msg.sender === 'bot') {
             <markdown [data]="msg.text" />
+            @if (msg.sources?.length) {
+              <div class="message-sources">
+                <span class="sources-label">Sources</span>
+                @for (source of msg.sources; track source.documentName) {
+                  <span class="source-chip">{{ source.documentName }}</span>
+                }
+              </div>
+            }
           } @else {
             {{ msg.text }}
           }

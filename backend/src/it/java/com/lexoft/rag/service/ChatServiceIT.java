@@ -14,8 +14,9 @@ class ChatServiceIT {
 
     @Test
     void ask_returnsNonEmptyResponseFromBedrock() {
-        String answer = chatService.ask("Why is the sky blue?");
+        var result = chatService.ask("Why is the sky blue?", "employee", "test-conversation");
 
-        assertThat(answer).isNotBlank();
+        assertThat(result.answer()).isNotBlank();
+        assertThat(result.sources()).isNotNull();
     }
 }

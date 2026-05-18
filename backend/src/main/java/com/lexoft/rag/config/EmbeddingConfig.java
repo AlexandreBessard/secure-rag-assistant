@@ -19,6 +19,7 @@ import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Configuration
 public class EmbeddingConfig {
@@ -81,7 +82,7 @@ public class EmbeddingConfig {
 
             @Override
             public float[] embed(org.springframework.ai.document.Document document) {
-                return embed(document.getText());
+                return embed(Objects.requireNonNull(document.getText()));
             }
 
             @Override

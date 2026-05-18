@@ -34,12 +34,12 @@ class EvaluationServiceIT {
     @Test
     void evaluateRelevancy_relevantAnswerPassesEvaluation() {
         var question = "Why is the sky blue?";
-        var answer = chatService.ask(question);
+        var result = chatService.ask(question, "employee", "test-conversation");
 
         var evaluationBuilder = ChatClient.builder(chatModel).defaultSystem(EVALUATOR_SYSTEM_PROMPT);
         var evaluator = new RelevancyEvaluator(evaluationBuilder);
         EvaluationResponse response = evaluator.evaluate(
-                new EvaluationRequest(question, List.of(SKY_CONTEXT), answer));
+                new EvaluationRequest(question, List.of(SKY_CONTEXT), result.answer()));
 
         Assertions.assertThat(response.isPass())
                 .withFailMessage("""
@@ -48,7 +48,7 @@ class EvaluationServiceIT {
                         is not considered relevant to the question
                         "%s".
                         ========================================
-                        """, answer, question)
+                        """, result.answer(), question)
                 .isTrue();
     }
 }
