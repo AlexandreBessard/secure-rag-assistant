@@ -6,8 +6,20 @@ interface WelcomeResponse {
   message: string;
 }
 
+export interface Source {
+  documentName: string;
+  documentId: string;
+}
+
 interface AskResponse {
   answer: string;
+  sources: Source[];
+}
+
+export interface HistoryMessage {
+  role: 'user' | 'bot';
+  text: string;
+  sources?: Source[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -23,9 +35,17 @@ export class ChatService {
     ).then((r) => r.message);
   }
 
-  ask(question: string): Promise<string> {
+  ask(question: string): Promise<{ answer: string; sources: Source[] }> {
     return firstValueFrom(
       this.http.post<AskResponse>(`${this.base}/ask`, { question }),
-    ).then((r) => r.answer);
+    ).then((r) => ({ answer: r.answer, sources: r.sources ?? [] }));
+  }
+
+  getHistory(): Promise<HistoryMessage[]> {
+    return firstValueFrom(this.http.get<HistoryMessage[]>(`${this.base}/history`)).catch(() => []);
+  }
+
+  clearHistory(): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`${this.base}/history`));
   }
 }

@@ -1,8 +1,12 @@
 package com.lexoft.rag.service;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemoryRepository;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class WelcomeService {
@@ -21,19 +25,28 @@ public class WelcomeService {
             """;
 
     private final ChatClient chatClient;
+    private final ChatMemoryRepository chatMemoryRepository;
 
-    public WelcomeService(ChatModel chatModel) {
+    public WelcomeService(ChatModel chatModel, ChatMemoryRepository chatMemoryRepository) {
         this.chatClient = ChatClient.builder(chatModel)
                 .defaultSystem(SYSTEM_PROMPT)
                 .build();
+        this.chatMemoryRepository = chatMemoryRepository;
     }
 
-    public String welcome(String username, String role) {
+    public String welcome(String username, String role, String conversationId) {
         String userPrompt = "Generate the welcome message for user '%s' who has the '%s' role."
                 .formatted(username, role);
-        return chatClient.prompt()
+        String text = chatClient.prompt()
                 .user(userPrompt)
                 .call()
                 .content();
+
+        // Persist welcome as the first message only when the conversation is fresh
+        if (chatMemoryRepository.findByConversationId(conversationId).isEmpty()) {
+            chatMemoryRepository.saveAll(conversationId, List.of(new AssistantMessage(text)));
+        }
+
+        return text;
     }
 }
