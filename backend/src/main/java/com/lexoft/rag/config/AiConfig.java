@@ -4,6 +4,7 @@ import com.lexoft.rag.rag.RoleFilterDocumentRetriever;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.evaluation.RelevancyEvaluator;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.ai.rag.preretrieval.query.expansion.MultiQueryExpander;
@@ -15,8 +16,14 @@ import org.springframework.context.annotation.Configuration;
 public class AiConfig {
 
     @Bean
-    public ChatClient chatClient(ChatClient.Builder builder) {
-        return builder.build();
+    public ChatClient chatClient(ChatModel chatModel, SyncMcpToolCallbackProvider mcpTools) {
+        // Build from ChatModel directly so the shared ChatClient.Builder bean is NOT mutated.
+        // Mutating the shared builder causes MultiQueryExpander (which reuses it) to see the
+        // tool definitions, leaking the tool description into expanded queries and causing
+        // those queries to match documents in pgvector — preventing tool calls from ever firing.
+        return ChatClient.builder(chatModel)
+                .defaultToolCallbacks(mcpTools)
+                .build();
     }
 
     @Bean

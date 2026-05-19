@@ -1,1 +1,52 @@
+# Project-specific local instruction file
 CLAUDE.md
+
+# ─── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*~
+
+# ─── IDEs ────────────────────────────────────────────────────────────────────
+# IntelliJ IDEA / JetBrains
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# VS Code (ignore personal settings; keep shared config files)
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+
+# Eclipse / STS
+.classpath
+.project
+.settings/
+.factorypath
+.springBeans
+.sts4-cache
+.apt_generated
+
+# ─── AI / Dev tools ──────────────────────────────────────────────────────────
+.playwright-mcp/
+
+# ─── Secrets & local overrides ───────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+application-local.properties
+application-local.yml
+application-secrets.properties
+*-credentials.properties
+terraform.tfvars
+!terraform.tfvars.example

@@ -9,7 +9,9 @@ import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.MessageType;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,12 +25,14 @@ public class ChatService {
     static final String DENIAL_PHRASE = "I don't have that information in the documents you are authorised to access.";
 
     private static final String SYSTEM_PROMPT = """
-            You are a secure enterprise document assistant. You have two sources of information:
+            You are a secure enterprise document assistant. You have three sources of information:
             1. Retrieved document context — use this to answer questions about company content.
             2. Conversation history — use this to answer questions about the current conversation
                (e.g. "what did I just ask?", "what was my first question?", "summarise our chat").
-            Answer using ONLY these two sources. Do not use any external knowledge.
-            If neither source contains enough information, respond with exactly this sentence and nothing else:
+            3. Tools — call these when the user asks about the document repository
+               (e.g. "how many documents", "how many company documents are there").
+            Answer using ONLY these three sources. Do not use any external knowledge.
+            If none of these sources contains enough information, respond with exactly this sentence and nothing else:
             "%s"
             Do not ask the user to provide documents. Do not suggest next steps. Do not add any explanation.
             Be concise and professional.
@@ -39,6 +43,7 @@ public class ChatService {
     private final ChatClient chatClient;
     private final RetrievalAugmentationAdvisor ragAdvisor;
     private final MessageChatMemoryAdvisor memoryAdvisor;
+    private final MessageWindowChatMemory memory;
     private final ChatMemoryRepository chatMemoryRepository;
     private final JdbcTemplate jdbcTemplate;
 
@@ -48,14 +53,33 @@ public class ChatService {
         this.ragAdvisor = ragAdvisor;
         this.chatMemoryRepository = chatMemoryRepository;
         this.jdbcTemplate = jdbcTemplate;
-        var memory = MessageWindowChatMemory.builder()
+        this.memory = MessageWindowChatMemory.builder()
                 .chatMemoryRepository(chatMemoryRepository)
                 .maxMessages(20)
                 .build();
-        this.memoryAdvisor = MessageChatMemoryAdvisor.builder(memory).build();
+        this.memoryAdvisor = MessageChatMemoryAdvisor.builder(this.memory).build();
     }
 
     public ChatResult ask(String question, String role, String conversationId) {
+        // Phase 1 — tool-first: no RAG advisor, no memory advisor.
+        // The LLM sees the original question and registered MCP tools and can call them directly.
+        // Skipping memory here avoids writing a denial phrase into history if we fall through to Phase 2.
+        String toolAnswer = chatClient.prompt()
+                .system(SYSTEM_PROMPT)
+                .user(question)
+                .call()
+                .content();
+
+        boolean toolAnswered = toolAnswer != null && !toolAnswer.trim().startsWith(DENIAL_PHRASE);
+
+        if (toolAnswered) {
+            // Persist the exchange via the same MessageWindowChatMemory the advisor uses,
+            // so history stays consistent across both phases.
+            memory.add(conversationId, List.of(new UserMessage(question), new AssistantMessage(toolAnswer)));
+            return new ChatResult(toolAnswer, List.of());
+        }
+
+        // Phase 2 — RAG fallback: full pipeline with retrieval and memory.
         ChatClientResponse clientResponse = chatClient.prompt()
                 .system(SYSTEM_PROMPT)
                 .user(question)

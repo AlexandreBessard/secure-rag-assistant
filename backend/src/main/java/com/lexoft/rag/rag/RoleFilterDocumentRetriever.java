@@ -24,14 +24,14 @@ public class RoleFilterDocumentRetriever implements DocumentRetriever {
     public static final String ROLE_CONTEXT_KEY = "required_role";
     private static final String DEFAULT_ROLE = "employee";
     private static final int TOP_K = 5;
-    private static final double SIMILARITY_THRESHOLD = 0.0;
+    private static final double SIMILARITY_THRESHOLD = 0.5;
 
     // Hierarchical access: a role may read documents tagged for its own level and all levels below.
     // executive sees everything; hr/manager each see their own tier plus employee; employee sees only employee.
     private static final Map<String, List<String>> ACCESSIBLE_ROLES = Map.of(
             "executive", List.of("executive", "manager", "hr", "employee"),
             "manager",   List.of("manager", "employee"),
-            "hr",        List.of("hr", "employee"),
+            "hr",        List.of("hr", "manager", "employee"),
             "employee",  List.of("employee")
     );
 
