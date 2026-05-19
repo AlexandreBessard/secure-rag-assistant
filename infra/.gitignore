@@ -1,0 +1,23 @@
+# Terraform state — never commit real state
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfplan
+
+# Variable files with real secrets
+*.tfvars
+!terraform.tfvars.example
+
+# Terraform override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Lambda build artifacts
+lambda/*.zip
