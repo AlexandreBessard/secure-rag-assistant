@@ -13,7 +13,6 @@ import java.util.List;
 public class McpServerConfig {
 
     // ToolCallbackConverterAutoConfiguration.syncTools() injects List<ToolCallback> directly;
-    // a ToolCallback[] bean is never picked up — must be a List.
     @Bean
     public List<ToolCallback> documentToolCallbacks(DocumentAccessTool documentAccessTool) {
         return Arrays.asList(MethodToolCallbackProvider.builder()

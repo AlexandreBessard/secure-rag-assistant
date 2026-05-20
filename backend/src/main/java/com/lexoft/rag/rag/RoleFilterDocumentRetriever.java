@@ -44,9 +44,7 @@ public class RoleFilterDocumentRetriever implements DocumentRetriever {
     @Override
     public List<Document> retrieve(Query query) {
         Map<String, Object> ctx = query.context();
-        String role = ctx != null
-                ? (String) ctx.getOrDefault(ROLE_CONTEXT_KEY, DEFAULT_ROLE)
-                : DEFAULT_ROLE;
+        String role = (String) ctx.getOrDefault(ROLE_CONTEXT_KEY, DEFAULT_ROLE);
 
         List<String> accessibleRoles = ACCESSIBLE_ROLES.getOrDefault(role, List.of(role));
         String filterExpr = buildFilterExpression(accessibleRoles);
