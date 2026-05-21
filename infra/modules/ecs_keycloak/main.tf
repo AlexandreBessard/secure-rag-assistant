@@ -2,6 +2,14 @@ locals {
   name = "${var.project}-${var.environment}"
 }
 
+# ── ECR ───────────────────────────────────────────────────────────────────────
+
+resource "aws_ecr_repository" "keycloak" {
+  name                 = "${local.name}-keycloak"
+  image_tag_mutability = "MUTABLE"
+  image_scanning_configuration { scan_on_push = true }
+}
+
 # ── IAM ───────────────────────────────────────────────────────────────────────
 
 resource "aws_iam_role" "execution" {
@@ -42,8 +50,9 @@ resource "aws_ecs_task_definition" "keycloak" {
   execution_role_arn       = aws_iam_role.execution.arn
 
   container_definitions = jsonencode([{
-    name  = "keycloak"
-    image = var.keycloak_image
+    name      = "keycloak"
+    image     = var.keycloak_image
+    essential = true
 
     portMappings = [{ containerPort = 8080, protocol = "tcp" }]
 
@@ -74,7 +83,7 @@ resource "aws_ecs_task_definition" "keycloak" {
 
 resource "aws_ecs_service" "keycloak" {
   name            = "${local.name}-keycloak"
-  cluster         = "${local.name}"
+  cluster         = var.cluster_id
   task_definition = aws_ecs_task_definition.keycloak.arn
   desired_count   = var.desired_count
   launch_type     = "FARGATE"

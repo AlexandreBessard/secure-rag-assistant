@@ -1,5 +1,6 @@
 package com.lexoft.rag.service;
 
+import com.lexoft.rag.common.security.Role;
 import com.lexoft.rag.model.ChatResult;
 import com.lexoft.rag.model.HistoryMessage;
 import org.junit.jupiter.api.Test;
@@ -82,7 +83,7 @@ class ChatServiceTest {
     void ask_delegatesQuestionToModelAndReturnsContent() {
         stubChatChain(buildClientResponse("The sky is blue because of Rayleigh scattering.", List.of()));
 
-        ChatResult result = chatService.ask("Why is the sky blue?", "employee", "conv-1");
+        ChatResult result = chatService.ask("Why is the sky blue?", Role.EMPLOYEE, "conv-1");
 
         assertThat(result.answer()).isEqualTo("The sky is blue because of Rayleigh scattering.");
         assertThat(result.sources()).isEmpty();
@@ -96,7 +97,7 @@ class ChatServiceTest {
                 .build();
         stubChatChain(buildClientResponse("Answer based on document.", List.of(doc)));
 
-        ChatResult result = chatService.ask("What are the financials?", "executive", "conv-1");
+        ChatResult result = chatService.ask("What are the financials?", Role.EXECUTIVE, "conv-1");
 
         assertThat(result.sources()).hasSize(1);
         assertThat(result.sources().get(0).documentName()).isEqualTo("annual-report.pdf");
@@ -110,7 +111,7 @@ class ChatServiceTest {
         Document doc2 = Document.builder().text("Chunk 2").metadata(meta).build();
         stubChatChain(buildClientResponse("Answer.", List.of(doc1, doc2)));
 
-        ChatResult result = chatService.ask("Question?", "employee", "conv-1");
+        ChatResult result = chatService.ask("Question?", Role.EMPLOYEE, "conv-1");
 
         assertThat(result.sources()).hasSize(1);
     }
@@ -123,7 +124,7 @@ class ChatServiceTest {
                 .build();
         stubChatChain(buildClientResponse(DENIAL_PHRASE, List.of(doc)));
 
-        ChatResult result = chatService.ask("What is the CEO salary?", "employee", "conv-1");
+        ChatResult result = chatService.ask("What is the CEO salary?", Role.EMPLOYEE, "conv-1");
 
         assertThat(result.sources()).isEmpty();
     }
@@ -132,7 +133,7 @@ class ChatServiceTest {
     void ask_propagatesEmptyResponseFromModel() {
         stubChatChain(buildClientResponse("", List.of()));
 
-        ChatResult result = chatService.ask("test", "employee", "conv-1");
+        ChatResult result = chatService.ask("test", Role.EMPLOYEE, "conv-1");
 
         assertThat(result.answer()).isEmpty();
         assertThat(result.sources()).isEmpty();

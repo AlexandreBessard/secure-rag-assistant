@@ -1,5 +1,7 @@
 package com.lexoft.rag.service;
 
+import com.lexoft.rag.common.security.Role;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
@@ -34,7 +36,7 @@ class EvaluationServiceIT {
     @Test
     void evaluateRelevancy_relevantAnswerPassesEvaluation() {
         var question = "Why is the sky blue?";
-        var result = chatService.ask(question, "employee", "test-conversation");
+        var result = chatService.ask(question, Role.EMPLOYEE, "test-conversation");
 
         var evaluationBuilder = ChatClient.builder(chatModel).defaultSystem(EVALUATOR_SYSTEM_PROMPT);
         var evaluator = new RelevancyEvaluator(evaluationBuilder);

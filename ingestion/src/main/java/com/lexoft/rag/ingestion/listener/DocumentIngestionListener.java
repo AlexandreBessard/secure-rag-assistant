@@ -1,6 +1,7 @@
 package com.lexoft.rag.ingestion.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lexoft.rag.ingestion.exception.DocumentParseException;
 import com.lexoft.rag.ingestion.model.S3EventNotification;
 import com.lexoft.rag.ingestion.service.IngestionService;
 import io.awspring.cloud.sqs.annotation.SqsListener;
@@ -48,8 +49,15 @@ public class DocumentIngestionListener {
 
             try {
                 process(bucket, key);
+            } catch (DocumentParseException e) {
+                // Permanent failure — retrying the same file produces the same result.
+                // Log and ACK the message so it is not re-queued indefinitely.
+                log.error("Permanent parse failure for s3://{}/{} — message consumed without retry: {}",
+                        bucket, key, e.getMessage(), e);
             } catch (Exception e) {
-                log.error("Failed to process s3://{}/{}", bucket, key, e);
+                // Transient failure (S3, DB, network) — re-throw so SQS retries
+                // and eventually routes to the DLQ after max attempts.
+                log.error("Transient failure processing s3://{}/{} — will retry", bucket, key, e);
                 throw e;
             }
         }

@@ -1,5 +1,11 @@
 variable "aws_region" {
-  description = "AWS region"
+  description = "AWS region for all resources"
+  type        = string
+  default     = "eu-west-1"
+}
+
+variable "bedrock_region" {
+  description = "AWS region for Bedrock (must support the selected models)"
   type        = string
   default     = "eu-west-1"
 }
@@ -31,4 +37,20 @@ variable "keycloak_admin_password" {
 variable "backend_image" {
   description = "Docker image URI for the Spring Boot backend (ECR)"
   type        = string
+}
+
+variable "tools_image" {
+  description = "Docker image URI for the MCP tools sidecar (ECR)"
+  type        = string
+}
+
+variable "ingestion_image" {
+  description = "Docker image URI for the ingestion service (ECR)"
+  type        = string
+}
+
+variable "keycloak_image" {
+  description = "Keycloak image URI. Default uses the upstream image (no realm baked in). After the first apply, build keycloak/Dockerfile, push to ecr_keycloak_url, and update this variable."
+  type        = string
+  default     = "quay.io/keycloak/keycloak:26.1.5"
 }

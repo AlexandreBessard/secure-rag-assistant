@@ -1,5 +1,6 @@
 package com.lexoft.rag.rag;
 
+import com.lexoft.rag.common.security.Role;
 import com.lexoft.rag.common.security.RoleHierarchy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,6 @@ public class RoleFilterDocumentRetriever implements DocumentRetriever {
 
     public static final String ROLE_CONTEXT_KEY = "required_role";
     private static final int TOP_K = 5;
-    private static final double SIMILARITY_THRESHOLD = 0.5;
 
     private final VectorStore vectorStore;
 
@@ -30,9 +30,9 @@ public class RoleFilterDocumentRetriever implements DocumentRetriever {
     @Override
     public List<Document> retrieve(Query query) {
         Map<String, Object> ctx = query.context();
-        String role = (String) ctx.getOrDefault(ROLE_CONTEXT_KEY, RoleHierarchy.DEFAULT);
+        Role role = (Role) ctx.getOrDefault(ROLE_CONTEXT_KEY, RoleHierarchy.DEFAULT);
 
-        List<String> accessibleRoles = RoleHierarchy.ACCESSIBLE.getOrDefault(role, List.of(role));
+        List<Role> accessibleRoles = RoleHierarchy.ACCESSIBLE.getOrDefault(role, List.of(role));
         String filterExpr = buildFilterExpression(accessibleRoles);
 
         List<Document> docs = vectorStore.similaritySearch(
@@ -40,20 +40,19 @@ public class RoleFilterDocumentRetriever implements DocumentRetriever {
                         .query(query.text())
                         .filterExpression(filterExpr)
                         .topK(TOP_K)
-                        //.similarityThreshold(SIMILARITY_THRESHOLD)
                         .build()
         );
-        log.info("RAG retrieve — role='{}' accessible={} query='{}' threshold={} hits={}",
-                role, accessibleRoles, query.text(), SIMILARITY_THRESHOLD, docs.size());
+        log.info("RAG retrieve — role='{}' accessible={} query='{}' hits={}",
+                role, accessibleRoles, query.text(), docs.size());
         return docs;
     }
 
-    private static String buildFilterExpression(List<String> roles) {
+    private static String buildFilterExpression(List<Role> roles) {
         if (roles.size() == 1) {
-            return "required_role == '" + roles.get(0) + "'";
+            return "required_role == '" + roles.get(0).value() + "'";
         }
         String values = roles.stream()
-                .map(r -> "'" + r + "'")
+                .map(r -> "'" + r.value() + "'")
                 .collect(Collectors.joining(", "));
         return "required_role in [" + values + "]";
     }

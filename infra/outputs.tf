@@ -14,7 +14,7 @@ output "document_bucket_name" {
 }
 
 output "sqs_queue_name" {
-  description = "SQS queue consumed by the ingestion service (set as SQS_QUEUE_NAME env var)"
+  description = "SQS queue consumed by the ingestion service"
   value       = module.sqs.queue_name
 }
 
@@ -24,7 +24,24 @@ output "rds_endpoint" {
   sensitive   = true
 }
 
-output "ecr_repository_url" {
-  description = "ECR repository URL — push the backend Docker image here"
+# ── ECR push targets (use these after the first apply) ────────────────────────
+
+output "ecr_backend_url" {
+  description = "ECR URL — push the backend image here"
   value       = module.ecs_backend.ecr_repository_url
+}
+
+output "ecr_tools_url" {
+  description = "ECR URL — push the tools image here"
+  value       = module.ecs_backend.ecr_tools_repository_url
+}
+
+output "ecr_ingestion_url" {
+  description = "ECR URL — push the ingestion image here"
+  value       = module.ecs_ingestion.ecr_repository_url
+}
+
+output "ecr_keycloak_url" {
+  description = "ECR URL — push the realm-baked Keycloak image here, then update keycloak_image in tfvars"
+  value       = module.ecs_keycloak.ecr_repository_url
 }

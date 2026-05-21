@@ -1,5 +1,6 @@
 package com.lexoft.rag.controller;
 
+import com.lexoft.rag.common.security.Role;
 import com.lexoft.rag.common.security.RoleHierarchy;
 import com.lexoft.rag.model.AskRequest;
 import com.lexoft.rag.model.AskResponse;
@@ -51,14 +52,14 @@ public class AskController {
     public AskResponse ask(@RequestBody AskRequest request,
                            @AuthenticationPrincipal Jwt jwt) {
         promptGuardService.guard(request.question(), jwt.getSubject());
-        String role = extractRole(jwt);
+        Role role = extractRole(jwt);
         String conversationId = jwt.getSubject();
         ChatResult result = chatService.ask(request.question(), role, conversationId);
         EvaluationResponse evaluation = evaluationService.evaluate(request.question(), result.answer());
         return new AskResponse(result.answer(), evaluation.isPass(), evaluation.getScore(), evaluation.getFeedback(), result.sources());
     }
 
-    private String extractRole(Jwt jwt) {
+    private Role extractRole(Jwt jwt) {
         Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
         if (realmAccess == null) return RoleHierarchy.DEFAULT;
         @SuppressWarnings("unchecked")

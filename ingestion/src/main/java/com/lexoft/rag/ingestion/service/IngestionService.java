@@ -1,5 +1,6 @@
 package com.lexoft.rag.ingestion.service;
 
+import com.lexoft.rag.ingestion.exception.DocumentParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
@@ -24,7 +25,12 @@ public class IngestionService {
     }
 
     public int ingest(String documentId, String requiredRole, String filename, byte[] fileBytes) {
-        List<Document> raw = new TikaDocumentReader(new ByteArrayResource(fileBytes, filename)).get();
+        List<Document> raw;
+        try {
+            raw = new TikaDocumentReader(new ByteArrayResource(fileBytes, filename)).get();
+        } catch (Exception e) {
+            throw new DocumentParseException(documentId, filename, e);
+        }
 
         List<Document> chunks = splitter.apply(raw);
         chunks.forEach(chunk -> {

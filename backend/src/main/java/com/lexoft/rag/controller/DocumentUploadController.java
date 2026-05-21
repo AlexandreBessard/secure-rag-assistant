@@ -23,7 +23,7 @@ public class DocumentUploadController {
     public Map<String, String> upload(
             @RequestParam String targetRole,
             @RequestParam MultipartFile file) throws IOException {
-        String key = uploadService.upload(targetRole, file.getOriginalFilename(), file.getBytes());
+        String key = uploadService.upload(targetRole, file.getOriginalFilename(), file.getSize(), file.getInputStream());
         return Map.of("key", key);
     }
 }

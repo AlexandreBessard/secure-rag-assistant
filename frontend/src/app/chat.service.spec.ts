@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ChatService } from './chat.service';
+import { environment } from '../environments/environment';
 
 describe('ChatService', () => {
   let service: ChatService;
@@ -36,7 +37,7 @@ describe('ChatService', () => {
   describe('ask', () => {
     it('resolves with answer and sources on success', async () => {
       const promise = service.ask('What is our policy?');
-      const req = httpMock.expectOne('http://localhost:8080/ask');
+      const req = httpMock.expectOne(environment.apiBaseUrl + '/ask');
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ question: 'What is our policy?' });
       req.flush({ answer: 'The policy is...', sources: [{ documentName: 'policy.pdf', documentId: 'doc-1' }] });
@@ -48,14 +49,14 @@ describe('ChatService', () => {
 
     it('defaults sources to empty array when backend returns null', async () => {
       const promise = service.ask('Hello');
-      httpMock.expectOne('http://localhost:8080/ask').flush({ answer: 'Hi', sources: null });
+      httpMock.expectOne(environment.apiBaseUrl + '/ask').flush({ answer: 'Hi', sources: null });
       const result = await promise;
       expect(result.sources).toEqual([]);
     });
 
     it('rethrows 400 Prompt Blocked as plain Error with the detail message', async () => {
       const promise = service.ask('jailbreak attempt');
-      httpMock.expectOne('http://localhost:8080/ask').flush(
+      httpMock.expectOne(environment.apiBaseUrl + '/ask').flush(
         { title: 'Prompt Blocked', detail: 'Prompt injection detected' },
         { status: 400, statusText: 'Bad Request' },
       );
@@ -64,7 +65,7 @@ describe('ChatService', () => {
 
     it('rethrows non-400 errors as-is', async () => {
       const promise = service.ask('question');
-      httpMock.expectOne('http://localhost:8080/ask').flush('Server error', {
+      httpMock.expectOne(environment.apiBaseUrl + '/ask').flush('Server error', {
         status: 500,
         statusText: 'Internal Server Error',
       });
@@ -76,7 +77,7 @@ describe('ChatService', () => {
     it('resolves with the history array from the backend', async () => {
       const promise = service.getHistory();
       httpMock
-        .expectOne('http://localhost:8080/history')
+        .expectOne(environment.apiBaseUrl + '/history')
         .flush([{ role: 'user', text: 'Hello', sources: [] }]);
       const result = await promise;
       expect(result).toHaveLength(1);
@@ -86,7 +87,7 @@ describe('ChatService', () => {
     it('returns empty array on any HTTP error', async () => {
       const promise = service.getHistory();
       httpMock
-        .expectOne('http://localhost:8080/history')
+        .expectOne(environment.apiBaseUrl + '/history')
         .flush(null, { status: 500, statusText: 'Server Error' });
       expect(await promise).toEqual([]);
     });
@@ -95,7 +96,7 @@ describe('ChatService', () => {
   describe('clearHistory', () => {
     it('sends DELETE to /history', async () => {
       const promise = service.clearHistory();
-      const req = httpMock.expectOne('http://localhost:8080/history');
+      const req = httpMock.expectOne(environment.apiBaseUrl + '/history');
       expect(req.request.method).toBe('DELETE');
       req.flush(null);
       await promise;

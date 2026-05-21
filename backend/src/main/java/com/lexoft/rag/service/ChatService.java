@@ -1,5 +1,6 @@
 package com.lexoft.rag.service;
 
+import com.lexoft.rag.common.security.Role;
 import com.lexoft.rag.model.ChatResult;
 import com.lexoft.rag.model.HistoryMessage;
 import com.lexoft.rag.model.Source;
@@ -65,7 +66,7 @@ public class ChatService {
         this.memoryAdvisor = MessageChatMemoryAdvisor.builder(this.memory).build();
     }
 
-    public ChatResult ask(String question, String role, String conversationId) {
+    public ChatResult ask(String question, Role role, String conversationId) {
         // Phase 1 — tool-first: no RAG advisor, no memory advisor.
         // The LLM sees the original question and registered MCP tools and can call them directly.
         // Skipping memory here avoids writing a denial phrase into history if we fall through to Phase 2.

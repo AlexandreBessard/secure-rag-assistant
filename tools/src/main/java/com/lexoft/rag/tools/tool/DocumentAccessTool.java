@@ -1,5 +1,6 @@
 package com.lexoft.rag.tools.tool;
 
+import com.lexoft.rag.common.security.Role;
 import com.lexoft.rag.common.security.RoleHierarchy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +37,8 @@ public class DocumentAccessTool {
                         "The count reflects only the folders the user's role grants access to, following the privilege hierarchy: " +
                         "executive > hr/manager > employee.")
     public String countAccessibleDocuments() {
-        String role = resolveUserRole();
-        List<String> prefixes = RoleHierarchy.ACCESSIBLE.getOrDefault(role, List.of(RoleHierarchy.DEFAULT));
+        Role role = resolveUserRole();
+        List<Role> prefixes = RoleHierarchy.ACCESSIBLE.getOrDefault(role, List.of(RoleHierarchy.DEFAULT));
 
         log.info("Counting documents — role='{}' prefixes={} bucket={}", role, prefixes, bucket);
 
@@ -46,7 +47,7 @@ public class DocumentAccessTool {
                         s3Client.listObjectsV2Paginator(
                                         ListObjectsV2Request.builder()
                                                 .bucket(bucket)
-                                                .prefix(prefix + "/")
+                                                .prefix(prefix.value() + "/")
                                                 .build()
                                 )
                                 .stream()
@@ -61,7 +62,7 @@ public class DocumentAccessTool {
         return String.format("You have access to %d document(s) as a %s.", total, role);
     }
 
-    private String resolveUserRole() {
+    private Role resolveUserRole() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (!(auth instanceof JwtAuthenticationToken jwtAuth)) {
             return RoleHierarchy.DEFAULT;
