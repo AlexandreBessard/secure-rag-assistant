@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -33,6 +36,15 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ChatServiceTest {
+
+    private static final String DENIAL_PHRASE =
+            "I don't have that information in the documents you are authorised to access.";
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(chatService, "denialPhrase", DENIAL_PHRASE);
+        ReflectionTestUtils.setField(chatService, "systemPrompt", "You are a helpful assistant.");
+    }
 
     @Mock
     private ChatClient chatClient;
@@ -109,7 +121,7 @@ class ChatServiceTest {
                 .text("Confidential HR data.")
                 .metadata(Map.of("source", "hr-policy.pdf", "document_id", "doc-2"))
                 .build();
-        stubChatChain(buildClientResponse(ChatService.DENIAL_PHRASE, List.of(doc)));
+        stubChatChain(buildClientResponse(DENIAL_PHRASE, List.of(doc)));
 
         ChatResult result = chatService.ask("What is the CEO salary?", "employee", "conv-1");
 

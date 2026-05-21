@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.5.0</version>
+		<relativePath/>
+	</parent>
+
+	<groupId>com.lexoft</groupId>
+	<artifactId>rag-parent</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>rag-parent</name>
+	<description>Secure RAG assistant — multi-module parent</description>
+
+	<modules>
+		<module>common</module>
+		<module>backend</module>
+		<module>ingestion</module>
+		<module>tools</module>
+	</modules>
+
+	<properties>
+		<java.version>17</java.version>
+		<spring-ai.version>1.1.6</spring-ai.version>
+		<spring-cloud-aws.version>3.3.0</spring-cloud-aws.version>
+		<aws-sdk.version>2.36.3</aws-sdk.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- AWS SDK BOM first — wins over all other BOMs for software.amazon.awssdk:*,
+			     ensuring every module resolves to the same consistent version -->
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>bom</artifactId>
+				<version>${aws-sdk.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.ai</groupId>
+				<artifactId>spring-ai-bom</artifactId>
+				<version>${spring-ai.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-dependencies</artifactId>
+				<version>${spring-cloud-aws.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+</project>

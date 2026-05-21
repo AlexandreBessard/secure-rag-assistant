@@ -1,0 +1,17 @@
+# Build artifacts
+**/target/
+**/.mvn/wrapper/maven-wrapper.jar
+frontend/node_modules/
+frontend/dist/
+
+# Infra / secrets
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.*
+infra/terraform.tfvars
+**/*.env
+**/.env*
+
+# IDE / OS
+**/.idea/
+**/.DS_Store

@@ -1,5 +1,6 @@
 package com.lexoft.rag.tools.tool;
 
+import com.lexoft.rag.common.security.RoleHierarchy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.annotation.Tool;
@@ -20,17 +21,6 @@ public class DocumentAccessTool {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentAccessTool.class);
 
-    // Role hierarchy: each role may access its own tier and all tiers below it.
-    private static final Map<String, List<String>> ACCESSIBLE_PREFIXES = Map.of(
-            "executive", List.of("executive", "manager", "hr", "employee"),
-            "hr",        List.of("hr", "manager", "employee"),
-            "manager",   List.of("manager", "employee"),
-            "employee",  List.of("employee")
-    );
-
-    // Ordered from highest to lowest privilege — used to pick the dominant role when a user holds several.
-    private static final List<String> ROLE_PRECEDENCE = List.of("executive", "hr", "manager", "employee");
-
     private final S3Client s3Client;
     private final String bucket;
 
@@ -47,7 +37,7 @@ public class DocumentAccessTool {
                         "executive > hr/manager > employee.")
     public String countAccessibleDocuments() {
         String role = resolveUserRole();
-        List<String> prefixes = ACCESSIBLE_PREFIXES.getOrDefault(role, List.of("employee"));
+        List<String> prefixes = RoleHierarchy.ACCESSIBLE.getOrDefault(role, List.of(RoleHierarchy.DEFAULT));
 
         log.info("Counting documents — role='{}' prefixes={} bucket={}", role, prefixes, bucket);
 
@@ -74,18 +64,13 @@ public class DocumentAccessTool {
     private String resolveUserRole() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (!(auth instanceof JwtAuthenticationToken jwtAuth)) {
-            return "employee";
+            return RoleHierarchy.DEFAULT;
         }
         Map<String, Object> realmAccess = jwtAuth.getToken().getClaimAsMap("realm_access");
-        if (realmAccess == null) return "employee";
+        if (realmAccess == null) return RoleHierarchy.DEFAULT;
 
         @SuppressWarnings("unchecked")
         List<String> roles = (List<String>) realmAccess.get("roles");
-        if (roles == null) return "employee";
-
-        return ROLE_PRECEDENCE.stream()
-                .filter(roles::contains)
-                .findFirst()
-                .orElse("employee");
+        return RoleHierarchy.resolve(roles);
     }
 }

@@ -1,5 +1,6 @@
 package com.lexoft.rag.rag;
 
+import com.lexoft.rag.common.security.RoleHierarchy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
@@ -12,28 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/*
-  RoleFilterDocumentRetriever (com.lexoft.rag.rag) — implements org.springframework.ai.rag.retrieval.search.DocumentRetriever.
-  Reads required_role from Query.context() (which RetrievalAugmentationAdvisor populates from AdvisedRequest
-  params), applies it as a metadata filter expression, and falls back to "employee" when absent — the safe default.
- */
 public class RoleFilterDocumentRetriever implements DocumentRetriever {
 
     private static final Logger log = LoggerFactory.getLogger(RoleFilterDocumentRetriever.class);
 
     public static final String ROLE_CONTEXT_KEY = "required_role";
-    private static final String DEFAULT_ROLE = "employee";
     private static final int TOP_K = 5;
     private static final double SIMILARITY_THRESHOLD = 0.5;
-
-    // Hierarchical access: a role may read documents tagged for its own level and all levels below.
-    // executive sees everything; hr/manager each see their own tier plus employee; employee sees only employee.
-    private static final Map<String, List<String>> ACCESSIBLE_ROLES = Map.of(
-            "executive", List.of("executive", "manager", "hr", "employee"),
-            "manager",   List.of("manager", "employee"),
-            "hr",        List.of("hr", "manager", "employee"),
-            "employee",  List.of("employee")
-    );
 
     private final VectorStore vectorStore;
 
@@ -44,9 +30,9 @@ public class RoleFilterDocumentRetriever implements DocumentRetriever {
     @Override
     public List<Document> retrieve(Query query) {
         Map<String, Object> ctx = query.context();
-        String role = (String) ctx.getOrDefault(ROLE_CONTEXT_KEY, DEFAULT_ROLE);
+        String role = (String) ctx.getOrDefault(ROLE_CONTEXT_KEY, RoleHierarchy.DEFAULT);
 
-        List<String> accessibleRoles = ACCESSIBLE_ROLES.getOrDefault(role, List.of(role));
+        List<String> accessibleRoles = RoleHierarchy.ACCESSIBLE.getOrDefault(role, List.of(role));
         String filterExpr = buildFilterExpression(accessibleRoles);
 
         List<Document> docs = vectorStore.similaritySearch(
