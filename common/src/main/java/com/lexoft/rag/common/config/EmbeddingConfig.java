@@ -1,4 +1,4 @@
-package com.lexoft.rag.config;
+package com.lexoft.rag.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
