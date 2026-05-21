@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -38,8 +39,12 @@ public class DocumentAccessTool {
         this.bucket = bucket;
     }
 
+    @PreAuthorize("hasAnyRole('executive', 'hr', 'manager', 'employee')")
     @Tool(name = "countAccessibleDocuments",
-          description = "Returns the number of company documents the current user is authorised to access, based on their role.")
+          description = "Returns the number of company documents the current user is authorised to access, based on their role. " +
+                        "Documents are stored in the company S3 bucket, organised by role-based prefixes (executive/, hr/, manager/, employee/). " +
+                        "The count reflects only the folders the user's role grants access to, following the privilege hierarchy: " +
+                        "executive > hr/manager > employee.")
     public String countAccessibleDocuments() {
         String role = resolveUserRole();
         List<String> prefixes = ACCESSIBLE_PREFIXES.getOrDefault(role, List.of("employee"));

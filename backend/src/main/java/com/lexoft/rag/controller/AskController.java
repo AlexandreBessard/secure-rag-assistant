@@ -6,6 +6,7 @@ import com.lexoft.rag.model.ChatResult;
 import com.lexoft.rag.model.HistoryMessage;
 import com.lexoft.rag.service.ChatService;
 import com.lexoft.rag.service.EvaluationService;
+import com.lexoft.rag.service.PromptGuardService;
 import org.springframework.ai.evaluation.EvaluationResponse;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -27,10 +28,13 @@ public class AskController {
 
     private final ChatService chatService;
     private final EvaluationService evaluationService;
+    private final PromptGuardService promptGuardService;
 
-    public AskController(ChatService chatService, EvaluationService evaluationService) {
+    public AskController(ChatService chatService, EvaluationService evaluationService,
+                         PromptGuardService promptGuardService) {
         this.chatService = chatService;
         this.evaluationService = evaluationService;
+        this.promptGuardService = promptGuardService;
     }
 
     @GetMapping(path = "/history", produces = "application/json")
@@ -47,6 +51,7 @@ public class AskController {
     @PostMapping(path = "/ask", produces = "application/json")
     public AskResponse ask(@RequestBody AskRequest request,
                            @AuthenticationPrincipal Jwt jwt) {
+        promptGuardService.guard(request.question(), jwt.getSubject());
         String role = extractRole(jwt);
         String conversationId = jwt.getSubject();
         ChatResult result = chatService.ask(request.question(), role, conversationId);

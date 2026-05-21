@@ -1,5 +1,6 @@
 package com.lexoft.rag.config;
 
+import com.lexoft.rag.advisor.CanaryWordAdvisor;
 import com.lexoft.rag.rag.RoleFilterDocumentRetriever;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.evaluation.RelevancyEvaluator;
@@ -23,6 +24,9 @@ public class AiConfig {
         // those queries to match documents in pgvector — preventing tool calls from ever firing.
         return ChatClient.builder(chatModel)
                 .defaultToolCallbacks(mcpTools)
+                .defaultAdvisors(CanaryWordAdvisor.builder()
+                        .canaryWordFoundMessage("Detected attempt to leak system prompt.")
+                        .build())
                 .build();
     }
 
