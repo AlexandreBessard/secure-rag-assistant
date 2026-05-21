@@ -81,10 +81,12 @@ export class App implements OnInit {
         ...msgs.slice(0, -1),
         { text: result.answer, sender: 'bot', sources: result.sources },
       ]);
-    } catch {
+    } catch (err) {
+      const text =
+        err instanceof Error ? err.message : 'Something went wrong. Please try again.';
       this.messages.update((msgs) => [
         ...msgs.slice(0, -1),
-        { text: 'Something went wrong. Please try again.', sender: 'bot' },
+        { text, sender: 'bot' },
       ]);
     } finally {
       this.ready.set(true);
