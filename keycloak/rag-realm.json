@@ -40,7 +40,11 @@
       "lastName": "Executive",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "alice123", "temporary": false }],
+      "credentials": [{
+        "type": "password",
+        "secretData": "{\"value\": \"upJoM0tB6SPzPi7f3TfE+q3VCHnoqHf9wDFUgSOeFJMVqB3IB4hXmwUQPBk/IBjRPAbitJE+aIudE4Vku/X7ag==\", \"salt\": \"Bj0auUVImSuT4XiQLC5aAg==\"}",
+        "credentialData": "{\"hashIterations\": 27500, \"algorithm\": \"pbkdf2-sha256\"}"
+      }],
       "realmRoles": ["executive", "admin"]
     },
     {
@@ -50,7 +54,11 @@
       "lastName": "HR",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "bob123", "temporary": false }],
+      "credentials": [{
+        "type": "password",
+        "secretData": "{\"value\": \"8DBPsxpRGpgJjPQvn6An4sG9bIZZXQi1ncFu6jsjNh62/TsODWVaISCYxKXwR/gHyi45o77kn0jDuDfe8zbkEA==\", \"salt\": \"q3EwVZh9FoxCeWZLpVxTIg==\"}",
+        "credentialData": "{\"hashIterations\": 27500, \"algorithm\": \"pbkdf2-sha256\"}"
+      }],
       "realmRoles": ["hr", "admin"]
     },
     {
@@ -60,7 +68,11 @@
       "lastName": "Manager",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "carol123", "temporary": false }],
+      "credentials": [{
+        "type": "password",
+        "secretData": "{\"value\": \"NjxyA1aD2GSDpAE8iIxJlINzPXsPP1tgyo8u020NjYvJrtzDpMPgpqZduJqzP8vgtkF66mxsWbsV8TLzCAW+zw==\", \"salt\": \"XmkRsazE9IwwO44ds9BTiQ==\"}",
+        "credentialData": "{\"hashIterations\": 27500, \"algorithm\": \"pbkdf2-sha256\"}"
+      }],
       "realmRoles": ["manager", "admin"]
     },
     {
@@ -70,7 +82,11 @@
       "lastName": "Employee",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "dave123", "temporary": false }],
+      "credentials": [{
+        "type": "password",
+        "secretData": "{\"value\": \"a7slbrukWymuiKKdT8zzGUCiLqjN522MvEB9dsSNEaIFsgY1Y6T+IuyWVINRTzjb3aaQgdnCWhL7B2IWg23c7Q==\", \"salt\": \"2a3IFguniQ5pKRfW2ZpO1Q==\"}",
+        "credentialData": "{\"hashIterations\": 27500, \"algorithm\": \"pbkdf2-sha256\"}"
+      }],
       "realmRoles": ["employee"]
     }
   ]

@@ -1,13 +1,10 @@
 import { Injectable } from '@angular/core';
 import Keycloak from 'keycloak-js';
+import { environment } from '../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class KeycloakService {
-  private kc = new Keycloak({
-    url: 'http://localhost:8180',
-    realm: 'rag-assistant',
-    clientId: 'rag-frontend',
-  });
+  private kc = new Keycloak(environment.keycloak);
 
   async init(): Promise<void> {
     await this.kc.init({

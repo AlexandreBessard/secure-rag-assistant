@@ -2,12 +2,26 @@ locals {
   name = "${var.project}-${var.environment}"
 }
 
-# ── SQS Queue ─────────────────────────────────────────────────────────────────
+# ── Dead-letter queue — receives messages after max_receive_count failed attempts ─
+
+resource "aws_sqs_queue" "documents_dlq" {
+  name                      = "${local.name}-document-queue-dlq"
+  message_retention_seconds = 1209600  # 14 days — enough time to inspect and replay
+
+  tags = { Name = "${local.name}-document-queue-dlq" }
+}
+
+# ── Main queue ─────────────────────────────────────────────────────────────────
 
 resource "aws_sqs_queue" "documents" {
   name                       = "${local.name}-document-queue"
   visibility_timeout_seconds = 300  # matches ingestion processing time
   message_retention_seconds  = 86400  # 1 day
+
+  redrive_policy = jsonencode({
+    deadLetterTargetArn = aws_sqs_queue.documents_dlq.arn
+    maxReceiveCount     = 3
+  })
 
   tags = { Name = "${local.name}-document-queue" }
 }

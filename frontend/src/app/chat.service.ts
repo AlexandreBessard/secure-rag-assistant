@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../environments/environment';
 
 interface WelcomeResponse {
   message: string;
@@ -25,7 +26,7 @@ export interface HistoryMessage {
 @Injectable({ providedIn: 'root' })
 export class ChatService {
   private http = inject(HttpClient);
-  private base = 'http://localhost:8080';
+  private base = environment.apiBaseUrl;
 
   getWelcome(username: string, role: string): Promise<string> {
     return firstValueFrom(
