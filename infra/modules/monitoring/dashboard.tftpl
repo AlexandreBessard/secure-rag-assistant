@@ -1,0 +1,130 @@
+{
+  "widgets": [
+
+    { "type": "text", "x": 0, "y": 0, "width": 24, "height": 1,
+      "properties": { "markdown": "## RAG — LLM Cost  |  Model: `${model_id}`  |  Region: `${region}`  |  Prices: input $0.80/1M · output $4.00/1M" }
+    },
+
+    { "type": "metric", "x": 0, "y": 1, "width": 8, "height": 4,
+      "properties": {
+        "title": "Total Cost (USD)",
+        "view": "singleValue",
+        "region": "${region}",
+        "metrics": [
+          [{ "expression": "m_in * 0.0000008 + m_out * 0.000004", "id": "e_total", "label": "Total Cost" }],
+          [ "AWS/Bedrock", "InputTokenCount",  "ModelId", "${model_id}", { "id": "m_in",  "stat": "Sum", "visible": false, "period": 86400 }],
+          [ "AWS/Bedrock", "OutputTokenCount", "ModelId", "${model_id}", { "id": "m_out", "stat": "Sum", "visible": false, "period": 86400 }]
+        ],
+        "period": 86400,
+        "stat": "Sum"
+      }
+    },
+
+    { "type": "metric", "x": 8, "y": 1, "width": 8, "height": 4,
+      "properties": {
+        "title": "Input Token Cost  ($0.80 / 1M)",
+        "view": "singleValue",
+        "region": "${region}",
+        "metrics": [
+          [{ "expression": "m_in * 0.0000008", "id": "e_in", "label": "Input Cost" }],
+          [ "AWS/Bedrock", "InputTokenCount", "ModelId", "${model_id}", { "id": "m_in", "stat": "Sum", "visible": false, "period": 86400 }]
+        ],
+        "period": 86400,
+        "stat": "Sum"
+      }
+    },
+
+    { "type": "metric", "x": 16, "y": 1, "width": 8, "height": 4,
+      "properties": {
+        "title": "Output Token Cost  ($4.00 / 1M)",
+        "view": "singleValue",
+        "region": "${region}",
+        "metrics": [
+          [{ "expression": "m_out * 0.000004", "id": "e_out", "label": "Output Cost" }],
+          [ "AWS/Bedrock", "OutputTokenCount", "ModelId", "${model_id}", { "id": "m_out", "stat": "Sum", "visible": false, "period": 86400 }]
+        ],
+        "period": 86400,
+        "stat": "Sum"
+      }
+    },
+
+    { "type": "metric", "x": 0, "y": 5, "width": 24, "height": 6,
+      "properties": {
+        "title": "Cost Over Time (USD per interval)",
+        "view": "timeSeries",
+        "region": "${region}",
+        "metrics": [
+          [{ "expression": "m_in * 0.0000008 + m_out * 0.000004", "id": "e_total", "label": "Total cost" }],
+          [{ "expression": "m_in  * 0.0000008",                    "id": "e_in",    "label": "Input cost"  }],
+          [{ "expression": "m_out * 0.000004",                     "id": "e_out",   "label": "Output cost" }],
+          [ "AWS/Bedrock", "InputTokenCount",  "ModelId", "${model_id}", { "id": "m_in",  "stat": "Sum", "visible": false, "period": 60 }],
+          [ "AWS/Bedrock", "OutputTokenCount", "ModelId", "${model_id}", { "id": "m_out", "stat": "Sum", "visible": false, "period": 60 }]
+        ],
+        "period": 60,
+        "yAxis": { "left": { "showUnits": false, "label": "USD" } }
+      }
+    },
+
+    { "type": "metric", "x": 0, "y": 11, "width": 8, "height": 4,
+      "properties": {
+        "title": "Total Input Tokens",
+        "view": "singleValue",
+        "region": "${region}",
+        "metrics": [
+          [ "AWS/Bedrock", "InputTokenCount", "ModelId", "${model_id}", { "stat": "Sum", "period": 86400 }]
+        ]
+      }
+    },
+
+    { "type": "metric", "x": 8, "y": 11, "width": 8, "height": 4,
+      "properties": {
+        "title": "Total Output Tokens",
+        "view": "singleValue",
+        "region": "${region}",
+        "metrics": [
+          [ "AWS/Bedrock", "OutputTokenCount", "ModelId", "${model_id}", { "stat": "Sum", "period": 86400 }]
+        ]
+      }
+    },
+
+    { "type": "metric", "x": 16, "y": 11, "width": 8, "height": 4,
+      "properties": {
+        "title": "Total Invocations",
+        "view": "singleValue",
+        "region": "${region}",
+        "metrics": [
+          [ "AWS/Bedrock", "Invocations", "ModelId", "${model_id}", { "stat": "Sum", "period": 86400 }]
+        ]
+      }
+    },
+
+    { "type": "metric", "x": 0, "y": 15, "width": 12, "height": 6,
+      "properties": {
+        "title": "Token Usage Rate (tokens / min)",
+        "view": "timeSeries",
+        "region": "${region}",
+        "metrics": [
+          [ "AWS/Bedrock", "InputTokenCount",  "ModelId", "${model_id}", { "stat": "Sum", "period": 60, "label": "Input tokens/min"  }],
+          [ "AWS/Bedrock", "OutputTokenCount", "ModelId", "${model_id}", { "stat": "Sum", "period": 60, "label": "Output tokens/min" }]
+        ],
+        "period": 60,
+        "yAxis": { "left": { "showUnits": false, "label": "tokens" } }
+      }
+    },
+
+    { "type": "metric", "x": 12, "y": 15, "width": 12, "height": 6,
+      "properties": {
+        "title": "Invocation Latency (ms)",
+        "view": "timeSeries",
+        "region": "${region}",
+        "metrics": [
+          [ "AWS/Bedrock", "InvocationLatency", "ModelId", "${model_id}", { "stat": "Average", "period": 60, "label": "Average" }],
+          [ "AWS/Bedrock", "InvocationLatency", "ModelId", "${model_id}", { "stat": "p99",     "period": 60, "label": "p99"     }]
+        ],
+        "period": 60,
+        "yAxis": { "left": { "showUnits": false, "label": "ms" } }
+      }
+    }
+
+  ]
+}

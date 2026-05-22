@@ -1,6 +1,11 @@
-output "backend_url" {
-  description = "Spring Boot backend base URL"
+output "frontend_url" {
+  description = "Angular SPA URL"
   value       = "http://${module.networking.alb_dns_name}"
+}
+
+output "backend_url" {
+  description = "Spring Boot backend base URL (direct access)"
+  value       = "http://${module.networking.alb_dns_name}:8080"
 }
 
 output "keycloak_url" {
@@ -39,6 +44,16 @@ output "ecr_tools_url" {
 output "ecr_ingestion_url" {
   description = "ECR URL — push the ingestion image here"
   value       = module.ecs_ingestion.ecr_repository_url
+}
+
+output "ecr_frontend_url" {
+  description = "ECR URL — push the frontend image here (build with --build-arg KEYCLOAK_URL)"
+  value       = module.ecs_frontend.ecr_repository_url
+}
+
+output "llm_cost_dashboard_url" {
+  description = "CloudWatch LLM cost dashboard — open this after deploying"
+  value       = module.monitoring.dashboard_url
 }
 
 output "ecr_keycloak_url" {

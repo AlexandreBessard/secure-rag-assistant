@@ -40,6 +40,12 @@ out/
 # ─── AI / Dev tools ──────────────────────────────────────────────────────────
 .playwright-mcp/
 
+# ─── Maven / Gradle build outputs ───────────────────────────────────────────
+target/
+build/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
 # ─── Secrets & local overrides ───────────────────────────────────────────────
 .env
 .env.*
