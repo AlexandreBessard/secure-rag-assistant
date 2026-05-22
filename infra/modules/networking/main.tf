@@ -91,9 +91,17 @@ resource "aws_security_group" "alb" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description = "Backend API"
+    description = "Frontend"
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Backend API (direct access)"
+    from_port   = 8080
+    to_port     = 8080
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -104,6 +112,27 @@ resource "aws_security_group" "alb" {
     to_port     = 8180
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "frontend" {
+  name        = "${local.name}-frontend-sg"
+  description = "Angular/nginx — reachable from ALB only"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description     = "From ALB"
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
   }
 
   egress {
@@ -208,6 +237,21 @@ resource "aws_lb" "main" {
   subnets            = aws_subnet.public[*].id
 }
 
+resource "aws_lb_target_group" "frontend" {
+  name        = "${local.name}-frontend-tg"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
+  target_type = "ip"
+
+  health_check {
+    path                = "/"
+    interval            = 30
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+  }
+}
+
 resource "aws_lb_target_group" "backend" {
   name        = "${local.name}-backend-tg"
   port        = 8080
@@ -238,9 +282,19 @@ resource "aws_lb_target_group" "keycloak" {
   }
 }
 
-resource "aws_lb_listener" "backend" {
+resource "aws_lb_listener" "frontend" {
   load_balancer_arn = aws_lb.main.arn
   port              = 80
+  protocol          = "HTTP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend.arn
+  }
+}
+
+resource "aws_lb_listener" "backend" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = 8080
   protocol          = "HTTP"
   default_action {
     type             = "forward"

@@ -49,6 +49,11 @@ variable "ingestion_image" {
   type        = string
 }
 
+variable "frontend_image" {
+  description = "Docker image URI for the Angular/nginx frontend (ECR)"
+  type        = string
+}
+
 variable "keycloak_image" {
   description = "Keycloak image URI. Default uses the upstream image (no realm baked in). After the first apply, build keycloak/Dockerfile, push to ecr_keycloak_url, and update this variable."
   type        = string

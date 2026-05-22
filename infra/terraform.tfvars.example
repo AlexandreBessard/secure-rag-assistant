@@ -8,14 +8,15 @@ keycloak_admin_password = "CHANGE_ME"
 
 # ── Docker image URIs ──────────────────────────────────────────────────────────
 # Workflow:
-#   1. terraform apply  (creates ECR repos — outputs will show the URIs)
-#   2. Build + push each image to its ECR repo
+#   1. terraform apply  (creates ECR repos — outputs show the URIs)
+#   2. Build + push each image to its ECR repo (see README for exact commands)
 #   3. Fill in the URIs below, then run terraform apply again
 #
-# The keycloak_image defaults to the upstream image (no realm baked in).
-# Once you've pushed the custom image (keycloak/Dockerfile), override it here.
+# Frontend note: build with --build-arg KEYCLOAK_URL=$(terraform output -raw keycloak_url)
+# Keycloak note: defaults to the upstream image (no realm). Push the custom image and uncomment.
 
 backend_image   = "123456789.dkr.ecr.eu-west-1.amazonaws.com/rag-assistant-poc-backend:latest"
 tools_image     = "123456789.dkr.ecr.eu-west-1.amazonaws.com/rag-assistant-poc-tools:latest"
 ingestion_image = "123456789.dkr.ecr.eu-west-1.amazonaws.com/rag-assistant-poc-ingestion:latest"
+frontend_image  = "123456789.dkr.ecr.eu-west-1.amazonaws.com/rag-assistant-poc-frontend:latest"
 # keycloak_image = "123456789.dkr.ecr.eu-west-1.amazonaws.com/rag-assistant-poc-keycloak:latest"

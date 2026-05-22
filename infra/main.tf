@@ -75,3 +75,24 @@ module "ecs_ingestion" {
   sqs_queue_arn       = module.sqs.queue_arn
   document_bucket_arn = module.s3.bucket_arn
 }
+
+module "monitoring" {
+  source         = "./modules/monitoring"
+  project        = var.project
+  environment    = var.environment
+  aws_region     = var.aws_region
+  bedrock_region = var.bedrock_region
+}
+
+module "ecs_frontend" {
+  source            = "./modules/ecs_frontend"
+  project           = var.project
+  environment       = var.environment
+  cluster_id        = module.ecs_backend.ecs_cluster_id
+  subnet_ids        = module.networking.public_subnet_ids
+  security_group_id = module.networking.frontend_sg_id
+  target_group_arn  = module.networking.frontend_tg_arn
+  frontend_image    = var.frontend_image
+  backend_url       = "http://${module.networking.alb_dns_name}:8080"
+  aws_region        = var.aws_region
+}

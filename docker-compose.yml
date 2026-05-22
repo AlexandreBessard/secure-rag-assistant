@@ -1,4 +1,7 @@
 services:
+
+  # ── Infrastructure ─────────────────────────────────────────────────────────
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.1.5
     command: start-dev --import-realm
@@ -13,6 +16,12 @@ services:
     volumes:
       - keycloak_data:/opt/keycloak/data
       - ./keycloak/rag-realm.json:/opt/keycloak/data/import/rag-realm.json
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health/ready || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
 
   pgvector:
     image: pgvector/pgvector:pg17
@@ -30,6 +39,124 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── Application services ───────────────────────────────────────────────────
+
+  tools:
+    build:
+      context: .
+      dockerfile: tools/Dockerfile
+    environment:
+      # AWS — inherited from host shell (aws configure) or set in .env
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+      AWS_REGION: ${AWS_REGION:-eu-west-1}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      # Keycloak: fetch JWKS from docker network; skip issuer-uri validation
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/rag-assistant/protocol/openid-connect/certs
+    ports:
+      - "8082:8082"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q UP || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      # Database
+      SPRING_DATASOURCE_URL: jdbc:postgresql://pgvector:5432/ragdb
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      # AWS
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+      AWS_REGION: ${AWS_REGION:-eu-west-1}
+      BEDROCK_REGION: ${BEDROCK_REGION:-eu-west-1}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      COMPREHEND_REGION: ${COMPREHEND_REGION:-eu-central-1}
+      # Keycloak: fetch JWKS from docker network; skip issuer-uri validation
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/rag-assistant/protocol/openid-connect/certs
+      # Frontend on port 80
+      CORS_ALLOWED_ORIGINS: http://localhost
+      # Tracing → Jaeger
+      MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      # MCP tools URL — property key contains a hyphen so JSON override is required
+      SPRING_APPLICATION_JSON: >-
+        {"spring":{"ai":{"mcp":{"client":{"sse":{"connections":{"rag-tools":{"url":"http://tools:8082"}}}}}}}}
+    ports:
+      - "8080:8080"
+    depends_on:
+      pgvector:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      tools:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  ingestion:
+    build:
+      context: .
+      dockerfile: ingestion/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      # Database
+      SPRING_DATASOURCE_URL: jdbc:postgresql://pgvector:5432/ragdb
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      # AWS
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+      AWS_REGION: ${AWS_REGION:-eu-west-1}
+      BEDROCK_REGION: ${BEDROCK_REGION:-eu-west-1}
+    ports:
+      - "8081:8081"
+    depends_on:
+      pgvector:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q UP || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Keycloak URL must match what the browser uses — port-mapped to 8180 on localhost
+        KEYCLOAK_URL: http://localhost:8180
+    environment:
+      # nginx reverse-proxies /ask /upload /welcome /history to this URL
+      BACKEND_URL: http://backend:8080
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Observability ──────────────────────────────────────────────────────────
+
   prometheus:
     image: prom/prometheus:v3.4.0
     ports:
@@ -37,6 +164,8 @@ services:
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
+    # host.docker.internal resolves to the host — reaches the app containers via
+    # their exposed ports (8080/8081/8082) whether they run on the host or in compose
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
