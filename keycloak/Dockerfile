@@ -1,7 +1,7 @@
 # Build context: keycloak/
 #   docker build -f keycloak/Dockerfile -t rag-keycloak keycloak/
 
-FROM quay.io/keycloak/keycloak:26.1.5
+FROM --platform=linux/amd64 quay.io/keycloak/keycloak:26.1.5
 
 # Bake the realm so --import-realm finds it at startup
 COPY rag-realm.json /opt/keycloak/data/import/rag-realm.json

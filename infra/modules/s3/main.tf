@@ -1,5 +1,6 @@
 resource "aws_s3_bucket" "documents" {
-  bucket = "${var.project}-${var.environment}-documents"
+  bucket        = "${var.project}-${var.environment}-documents"
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_versioning" "documents" {

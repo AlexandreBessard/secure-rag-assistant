@@ -25,11 +25,16 @@
       "directAccessGrantsEnabled": true,
       "protocol": "openid-connect",
       "redirectUris": [
-        "http://localhost:4200/*"
+        "http://localhost:4200/*",
+        "http://rag-assistant-poc-alb-660721403.eu-west-1.elb.amazonaws.com/*"
       ],
       "webOrigins": [
-        "http://localhost:4200"
-      ]
+        "http://localhost:4200",
+        "http://rag-assistant-poc-alb-660721403.eu-west-1.elb.amazonaws.com"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:4200/*##http://rag-assistant-poc-alb-660721403.eu-west-1.elb.amazonaws.com/*"
+      }
     }
   ],
   "users": [

@@ -7,6 +7,7 @@ locals {
 resource "aws_ecr_repository" "ingestion" {
   name                 = "${local.name}-ingestion"
   image_tag_mutability = "MUTABLE"
+  force_delete         = true
   image_scanning_configuration { scan_on_push = true }
 }
 
@@ -72,6 +73,7 @@ resource "aws_iam_role_policy" "task_sqs" {
         "sqs:ReceiveMessage",
         "sqs:DeleteMessage",
         "sqs:GetQueueAttributes",
+        "sqs:GetQueueUrl",
         "sqs:ChangeMessageVisibility",
       ]
       Resource = var.sqs_queue_arn
@@ -102,6 +104,8 @@ resource "aws_cloudwatch_log_group" "ingestion" {
 # ── Task Definition ───────────────────────────────────────────────────────────
 
 resource "aws_ecs_task_definition" "ingestion" {
+  count = var.ingestion_image != "" ? 1 : 0
+
   family                   = "${local.name}-ingestion"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
@@ -141,9 +145,10 @@ resource "aws_ecs_task_definition" "ingestion" {
 # ── Service ───────────────────────────────────────────────────────────────────
 
 resource "aws_ecs_service" "ingestion" {
+  count           = var.ingestion_image != "" ? 1 : 0
   name            = "${local.name}-ingestion"
   cluster         = var.cluster_id
-  task_definition = aws_ecs_task_definition.ingestion.arn
+  task_definition = aws_ecs_task_definition.ingestion[0].arn
   desired_count   = var.desired_count
   launch_type     = "FARGATE"
 

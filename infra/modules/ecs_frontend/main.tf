@@ -7,6 +7,7 @@ locals {
 resource "aws_ecr_repository" "frontend" {
   name                 = "${local.name}-frontend"
   image_tag_mutability = "MUTABLE"
+  force_delete         = true
   image_scanning_configuration { scan_on_push = true }
 }
 
@@ -41,6 +42,8 @@ resource "aws_cloudwatch_log_group" "frontend" {
 # BACKEND_URL is injected at container start via docker-entrypoint.sh + envsubst.
 
 resource "aws_ecs_task_definition" "frontend" {
+  count = var.frontend_image != "" ? 1 : 0
+
   family                   = "${local.name}-frontend"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
@@ -73,9 +76,10 @@ resource "aws_ecs_task_definition" "frontend" {
 # ── Service ───────────────────────────────────────────────────────────────────
 
 resource "aws_ecs_service" "frontend" {
+  count           = var.frontend_image != "" ? 1 : 0
   name            = "${local.name}-frontend"
   cluster         = var.cluster_id
-  task_definition = aws_ecs_task_definition.frontend.arn
+  task_definition = aws_ecs_task_definition.frontend[0].arn
   desired_count   = var.desired_count
   launch_type     = "FARGATE"
 

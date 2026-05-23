@@ -6,7 +6,7 @@
 #     frontend/
 
 # ---- build stage ----
-FROM node:22-alpine AS builder
+FROM --platform=linux/amd64 node:22-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -19,7 +19,7 @@ RUN sed -i "s|url: ''|url: '${KEYCLOAK_URL}'|" src/environments/environment.prod
 RUN npm run build
 
 # ---- runtime stage ----
-FROM nginx:1.27-alpine
+FROM --platform=linux/amd64 nginx:1.27-alpine
 
 # Remove default nginx config
 RUN rm /etc/nginx/conf.d/default.conf

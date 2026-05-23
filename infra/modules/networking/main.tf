@@ -124,7 +124,7 @@ resource "aws_security_group" "alb" {
 
 resource "aws_security_group" "frontend" {
   name        = "${local.name}-frontend-sg"
-  description = "Angular/nginx — reachable from ALB only"
+  description = "Angular/nginx - reachable from ALB only"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -145,7 +145,7 @@ resource "aws_security_group" "frontend" {
 
 resource "aws_security_group" "backend" {
   name        = "${local.name}-backend-sg"
-  description = "Spring Boot — reachable from ALB only"
+  description = "Spring Boot - reachable from ALB only"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -166,7 +166,7 @@ resource "aws_security_group" "backend" {
 
 resource "aws_security_group" "keycloak" {
   name        = "${local.name}-keycloak-sg"
-  description = "Keycloak — reachable from ALB only"
+  description = "Keycloak - reachable from ALB only"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -187,7 +187,7 @@ resource "aws_security_group" "keycloak" {
 
 resource "aws_security_group" "rds" {
   name        = "${local.name}-rds-sg"
-  description = "PostgreSQL — reachable from backend and ingestion service only"
+  description = "PostgreSQL - reachable from backend and ingestion service only"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -216,7 +216,7 @@ resource "aws_security_group" "rds" {
 
 resource "aws_security_group" "ingestion" {
   name        = "${local.name}-ingestion-sg"
-  description = "Ingestion service — egress only (NAT → S3/SQS/Bedrock, SG → RDS)"
+  description = "Ingestion service - egress only (NAT to S3/SQS/Bedrock, SG to RDS)"
   vpc_id      = aws_vpc.main.id
 
   egress {

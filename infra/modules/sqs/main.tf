@@ -52,9 +52,8 @@ resource "aws_s3_bucket_notification" "upload" {
   bucket = var.document_bucket_id
 
   queue {
-    queue_arn     = aws_sqs_queue.documents.arn
-    events        = ["s3:ObjectCreated:*"]
-    filter_prefix = "raw/"
+    queue_arn = aws_sqs_queue.documents.arn
+    events    = ["s3:ObjectCreated:*"]
   }
 
   depends_on = [aws_sqs_queue_policy.documents]
