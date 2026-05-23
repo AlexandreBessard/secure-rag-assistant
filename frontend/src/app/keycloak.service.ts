@@ -38,6 +38,17 @@ export class KeycloakService {
   }
 
   logout(): void {
-    this.kc.logout({ redirectUri: window.location.origin });
+    if (this.kc.idToken) {
+      this.kc.logout({ redirectUri: window.location.origin });
+    } else {
+      // idToken unavailable (e.g. after a silent refresh) — Keycloak 18+ rejects
+      // an empty id_token_hint, so build the end-session URL with client_id instead.
+      const base = `${environment.keycloak.url}/realms/${environment.keycloak.realm}/protocol/openid-connect/logout`;
+      const params = new URLSearchParams({
+        client_id: environment.keycloak.clientId,
+        post_logout_redirect_uri: window.location.origin,
+      });
+      window.location.href = `${base}?${params}`;
+    }
   }
 }

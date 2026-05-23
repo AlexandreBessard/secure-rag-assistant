@@ -7,12 +7,14 @@ locals {
 resource "aws_ecr_repository" "backend" {
   name                 = "${local.name}-backend"
   image_tag_mutability = "MUTABLE"
+  force_delete         = true
   image_scanning_configuration { scan_on_push = true }
 }
 
 resource "aws_ecr_repository" "tools" {
   name                 = "${local.name}-tools"
   image_tag_mutability = "MUTABLE"
+  force_delete         = true
   image_scanning_configuration { scan_on_push = true }
 }
 
@@ -120,6 +122,8 @@ resource "aws_cloudwatch_log_group" "tools" {
 # localhost:8082 without any service-discovery plumbing.
 
 resource "aws_ecs_task_definition" "backend" {
+  count = var.backend_image != "" ? 1 : 0
+
   family                   = "${local.name}-backend"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
@@ -134,6 +138,8 @@ resource "aws_ecs_task_definition" "backend" {
       image     = var.backend_image
       essential = true
 
+      dependsOn = [{ containerName = "tools", condition = "HEALTHY" }]
+
       portMappings = [{ containerPort = 8080, protocol = "tcp" }]
 
       environment = [
@@ -144,6 +150,8 @@ resource "aws_ecs_task_definition" "backend" {
         { name = "BEDROCK_REGION",             value = var.bedrock_region },
         { name = "S3_BUCKET_NAME",             value = var.s3_bucket_name },
         { name = "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI", value = var.keycloak_issuer_uri },
+        { name = "MANAGEMENT_TRACING_SAMPLING_PROBABILITY", value = "0.0" },
+        { name = "CORS_ALLOWED_ORIGINS", value = "http://${var.alb_dns_name}" },
       ]
 
       logConfiguration = {
@@ -159,6 +167,14 @@ resource "aws_ecs_task_definition" "backend" {
       name      = "tools"
       image     = var.tools_image
       essential = false
+
+      healthCheck = {
+        command     = ["CMD-SHELL", "wget -q --spider http://localhost:8082/actuator/health || exit 1"]
+        interval    = 10
+        timeout     = 5
+        retries     = 6
+        startPeriod = 60
+      }
 
       portMappings = [{ containerPort = 8082, protocol = "tcp" }]
 
@@ -183,9 +199,10 @@ resource "aws_ecs_task_definition" "backend" {
 # ── Service ───────────────────────────────────────────────────────────────────
 
 resource "aws_ecs_service" "backend" {
+  count           = var.backend_image != "" ? 1 : 0
   name            = "${local.name}-backend"
   cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.backend.arn
+  task_definition = aws_ecs_task_definition.backend[0].arn
   desired_count   = var.desired_count
   launch_type     = "FARGATE"
 

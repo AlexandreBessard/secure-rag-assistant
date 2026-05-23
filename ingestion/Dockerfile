@@ -6,11 +6,12 @@
 #   aws    → SQS listener mode (no HTTP server needed)
 
 # ---- build stage ----
-FROM maven:3.9-eclipse-temurin-17 AS builder
+FROM --platform=linux/amd64 maven:3.9-eclipse-temurin-17 AS builder
 WORKDIR /build
 
 # Root POM must be present so module POMs can resolve rag-parent via relativePath
 COPY pom.xml .
+RUN mvn -f pom.xml -N install -q
 
 # 1. Install common into the local m2 cache so ingestion can resolve rag-common
 COPY common/pom.xml common/
@@ -26,7 +27,7 @@ COPY ingestion/src ingestion/src
 RUN mvn -f ingestion/pom.xml package -DskipTests -q
 
 # ---- runtime stage ----
-FROM eclipse-temurin:17-jre-alpine
+FROM --platform=linux/amd64 eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
 COPY --from=builder /build/ingestion/target/rag-ingestion-*.jar app.jar

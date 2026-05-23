@@ -7,6 +7,7 @@ locals {
 resource "aws_ecr_repository" "keycloak" {
   name                 = "${local.name}-keycloak"
   image_tag_mutability = "MUTABLE"
+  force_delete         = true
   image_scanning_configuration { scan_on_push = true }
 }
 
@@ -66,6 +67,7 @@ resource "aws_ecs_task_definition" "keycloak" {
       { name = "KC_HOSTNAME_PORT",            value = "8180" },
       { name = "KC_HOSTNAME_STRICT",          value = "false" },
       { name = "KC_PROXY",                    value = "edge" },
+      { name = "KC_HEALTH_ENABLED",           value = "true" },
     ]
 
     logConfiguration = {
@@ -99,6 +101,9 @@ resource "aws_ecs_service" "keycloak" {
     container_name   = "keycloak"
     container_port   = 8080
   }
+
+  # Keycloak takes ~50s to start; give it 120s before the ALB health checks count
+  health_check_grace_period_seconds = 120
 
   depends_on = [aws_iam_role_policy_attachment.execution]
 }

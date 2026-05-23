@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -51,11 +52,19 @@ public class DocumentUploadService {
         validateMagicBytes(ext, header);
 
         String safeFilename = sanitizeFilename(originalFilename);
+        String documentId = safeFilename.contains(".")
+                ? safeFilename.substring(0, safeFilename.lastIndexOf('.'))
+                : safeFilename;
         String key = targetRole + "/" + UUID.randomUUID() + "/" + safeFilename;
+
+        Map<String, String> metadata = Map.of(
+                "required-role", targetRole,
+                "document-id", documentId
+        );
 
         InputStream fullStream = new SequenceInputStream(new ByteArrayInputStream(header), inputStream);
         s3Client.putObject(
-                r -> r.bucket(bucket).key(key).contentLength(fileSize),
+                r -> r.bucket(bucket).key(key).contentLength(fileSize).metadata(metadata),
                 RequestBody.fromInputStream(fullStream, fileSize)
         );
 

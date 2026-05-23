@@ -3,7 +3,10 @@ variable "environment"         { type = string }
 variable "cluster_id"          { type = string }
 variable "subnet_ids"          { type = list(string) }
 variable "security_group_id"   { type = string }
-variable "ingestion_image"     { type = string }
+variable "ingestion_image" {
+  type    = string
+  default = ""
+}
 variable "db_host"             { type = string }
 variable "db_name"             { type = string }
 variable "aws_region"          { type = string }

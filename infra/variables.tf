@@ -35,23 +35,27 @@ variable "keycloak_admin_password" {
 }
 
 variable "backend_image" {
-  description = "Docker image URI for the Spring Boot backend (ECR)"
+  description = "Docker image URI for the Spring Boot backend (ECR). Leave empty on first apply; fill in after pushing images."
   type        = string
+  default     = ""
 }
 
 variable "tools_image" {
-  description = "Docker image URI for the MCP tools sidecar (ECR)"
+  description = "Docker image URI for the MCP tools sidecar (ECR). Leave empty on first apply; fill in after pushing images."
   type        = string
+  default     = ""
 }
 
 variable "ingestion_image" {
-  description = "Docker image URI for the ingestion service (ECR)"
+  description = "Docker image URI for the ingestion service (ECR). Leave empty on first apply; fill in after pushing images."
   type        = string
+  default     = ""
 }
 
 variable "frontend_image" {
-  description = "Docker image URI for the Angular/nginx frontend (ECR)"
+  description = "Docker image URI for the Angular/nginx frontend (ECR). Leave empty on first apply; fill in after pushing images."
   type        = string
+  default     = ""
 }
 
 variable "keycloak_image" {

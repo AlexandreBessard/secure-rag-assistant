@@ -43,6 +43,7 @@ module "ecs_backend" {
   bedrock_region      = var.bedrock_region
   s3_bucket_name      = module.s3.bucket_id
   keycloak_issuer_uri = "http://${module.networking.alb_dns_name}:8180/realms/rag-assistant"
+  alb_dns_name        = module.networking.alb_dns_name
 }
 
 module "ecs_keycloak" {

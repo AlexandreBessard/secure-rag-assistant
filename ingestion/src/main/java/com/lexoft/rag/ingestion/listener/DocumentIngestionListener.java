@@ -41,6 +41,11 @@ public class DocumentIngestionListener {
     public void onS3Event(String messageBody) throws IOException {
         S3EventNotification event = objectMapper.readValue(messageBody, S3EventNotification.class);
 
+        if (event.records() == null || event.records().isEmpty()) {
+            log.info("Ignoring S3 notification with no records");
+            return;
+        }
+
         for (S3EventNotification.Record record : event.records()) {
             String bucket = record.s3().bucket().name();
             // S3 URL-encodes the key in the notification (spaces → '+' or '%20')

@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+
 CREATE TABLE IF NOT EXISTS SPRING_AI_CHAT_MEMORY (
     conversation_id VARCHAR(36) NOT NULL,
     content         TEXT        NOT NULL,
